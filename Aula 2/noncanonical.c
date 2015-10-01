@@ -77,9 +77,13 @@ int main(int argc, char** argv)
 
 char SET[5];
 char UA[5];
+sleep(5);
 
-res = read(fd, SET, strlen(SET) + 1);
-printf("%d bytes read from SET\n\n", res);
+unsigned int i = 0;
+for(i; i < 5; i++)
+{
+res = read(fd, SET[i], 1);
+}
 
 printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
@@ -92,7 +96,6 @@ UA[3] = UA[1]^UA[2];
 UA[4] = F;
 
 res = write(fd, UA, strlen(UA) + 1);
-printf("%d bytes read from UA\n\n", res);
 
 printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
