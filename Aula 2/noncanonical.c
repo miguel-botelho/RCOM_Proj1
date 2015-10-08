@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
 char SET[5];
 char UA[5];
-char c;
+char flag_ST;
 sleep(5);
 
 unsigned int i = 0;
@@ -92,69 +92,69 @@ int option = START;
 
 while(!(STOP))
 {	
-	res = read(fd, &c, 1);
+	res = read(fd, &flag_ST, 1);
 	switch (option)
 	{
 	case START:
-		if (c == F) //ver
+		if (flag_ST == F) //ver
 			{
 				option = FLAG_RCV;
-				SET[0] = c;
+				SET[0] = flag_ST;
 			}
 		else
 			option = START;
 		break;
 
 	case FLAG_RCV:
-		if (c == F) //ver
+		if (flag_ST == F) //ver
 			{
 				option = FLAG_RCV;
-				SET[0] = c;
+				SET[0] = flag_ST;
 			}
-		else if (c == A) //ver
+		else if (flag_ST == A) //ver
 			{
 				option = A_RCV;
-				SET[1] = c;
+				SET[1] = flag_ST;
 			}
 		else
 			option = START;
 		break;
 
 	case A_RCV:
-		if (c == F) //ver
+		if (flag_ST == F) //ver
 			{
 				option = FLAG_RCV;
-				SET[0] = c;
+				SET[0] = flag_ST;
 			}
-		else if (c == C_SET) //ver
+		else if (flag_ST == C_SET) //ver
 			{
 				option = FLAG_RCV;
-				SET[2] = c;
+				SET[2] = flag_ST;
 			}
 		else
 			option = START;
 		break;
 
 	case C_RCV:
-		if (c == F) //ver
+		if (flag_ST == F) //ver
 			{
 				option = FLAG_RCV;
-				SET[0] = c;
+				SET[0] = flag_ST;
 			}
-		else if (c == BCC) //ver
+		else if (flag_ST == BCC) //ver
 			{
 				option = FLAG_RCV;
-				SET[3] = c;
+				SET[3] = flag_ST;
 			}
 		else
 			option = START;
 		break;
 
 	case BCC_OK:
-		if (c == F) //ver
+		if (flag_ST == F) //ver
 			{
 				option = STOP_ST;
-				SET[4] = c;
+				SET[4] = flag_ST;
 			}
 		else
 			option = START;
