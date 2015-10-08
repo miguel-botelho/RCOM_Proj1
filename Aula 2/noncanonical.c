@@ -93,6 +93,8 @@ int option = START;
 while(!(STOP))
 {	
 	res = read(fd, &flag_ST, 1);
+	/*printf("option: %d\nflag_ST: 0x%x\n\n",option, flag_ST);
+	sleep(1);*/
 	switch (option)
 	{
 	case START:
@@ -128,7 +130,7 @@ while(!(STOP))
 			}
 		else if (flag_ST == C_SET) //ver
 			{
-				option = FLAG_RCV;
+				option = C_RCV;
 				SET[2] = flag_ST;
 			}
 		else
@@ -143,7 +145,7 @@ while(!(STOP))
 			}
 		else if (flag_ST == BCC) //ver
 			{
-				option = FLAG_RCV;
+				option = BCC_OK;
 				SET[3] = flag_ST;
 			}
 		else
