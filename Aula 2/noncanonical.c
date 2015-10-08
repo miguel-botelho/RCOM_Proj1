@@ -181,12 +181,12 @@ UA[2] = C_UA;
 UA[3] = UA[1]^UA[2];
 UA[4] = F;
 
-res = write(fd, UA, strlen(UA) + 1);
+res = write(fd, UA, strlen(UA));
 
 printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
    
-    sleep(5);
+    sleep(1);
 
 
 
