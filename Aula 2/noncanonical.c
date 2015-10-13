@@ -17,6 +17,13 @@
 #define C_SET 0x07
 #define BCC (A^C_SET)
 
+#define START 0
+#define FLAG_RCV 1
+#define A_RCV 2
+#define C_RCV 3
+#define BCC_OK 4
+#define STOP_ST 5
+
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv)
@@ -77,12 +84,91 @@ int main(int argc, char** argv)
 
 char SET[5];
 char UA[5];
+char flag_ST;
 sleep(5);
 
 unsigned int i = 0;
-for(i; i < 5; i++)
-{
-res = read(fd, SET[i], 1);
+int option = START;
+
+while(!(STOP))
+{	
+	res = read(fd, &flag_ST, 1);
+	/*printf("option: %d\nflag_ST: 0x%x\n\n",option, flag_ST);
+	sleep(1);*/
+	switch (option)
+	{
+	case START:
+		if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				SET[0] = flag_ST;
+			}
+		else
+			option = START;
+		break;
+
+	case FLAG_RCV:
+		if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				SET[0] = flag_ST;
+			}
+		else if (flag_ST == A) //ver
+			{
+				option = A_RCV;
+				SET[1] = flag_ST;
+			}
+		else
+			option = START;
+		break;
+
+	case A_RCV:
+		if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				SET[0] = flag_ST;
+			}
+		else if (flag_ST == C_SET) //ver
+			{
+				option = C_RCV;
+				SET[2] = flag_ST;
+			}
+		else
+			option = START;
+		break;
+
+	case C_RCV:
+		if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				SET[0] = flag_ST;
+			}
+		else if (flag_ST == BCC) //ver
+			{
+				option = BCC_OK;
+				SET[3] = flag_ST;
+			}
+		else
+			option = START;
+		break;
+
+	case BCC_OK:
+		if (flag_ST == F) //ver
+			{
+				option = STOP_ST;
+				SET[4] = flag_ST;
+			}
+		else
+			option = START;
+		break;
+
+	case STOP_ST:
+		STOP = TRUE;
+		break;
+
+	default:
+		break;
+	} 
 }
 
 printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
@@ -95,12 +181,12 @@ UA[2] = C_UA;
 UA[3] = UA[1]^UA[2];
 UA[4] = F;
 
-res = write(fd, UA, strlen(UA) + 1);
+res = write(fd, UA, strlen(UA));
 
 printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
    
-    sleep(5);
+    sleep(1);
 
 
 

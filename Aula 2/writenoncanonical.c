@@ -17,6 +17,11 @@
 #define C_SET 0x07
 #define BCC (A^C_SET)
 
+#define ATTEMPTS 4
+#define TIME_OUT 3
+
+#define C_UA 0x03
+
 volatile int STOP=FALSE;
 
 int main(int argc, char** argv)
@@ -40,7 +45,7 @@ int main(int argc, char** argv)
   */
 
 
-    fd = open(argv[1], O_RDWR | O_NOCTTY );
+    fd = open(argv[1], O_RDWR | O_NOCTTY);
     if (fd <0) {perror(argv[1]); exit(-1); }
 
     if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
@@ -57,13 +62,13 @@ int main(int argc, char** argv)
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
 
 
   /* 
     VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) próximo(s) caracter(es)
+    leitura do(s) prÃ³ximo(s) caracter(es)
   */
 
 
@@ -80,11 +85,13 @@ int main(int argc, char** argv)
 
 
   /* 
-    O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
-    o indicado no guião 
+    O ciclo FOR e as instruÃ§Ãµes seguintes devem ser alterados de modo a respeitar 
+    o indicado no guiÃ£o 
   */
 
 	char SET[5];
+	char received_UA;
+	char UA[5];
 	
 	SET[0] = F;
 	SET[1] = A;
@@ -93,15 +100,39 @@ int main(int argc, char** argv)
 	SET[4] = F;
 
 	/* WRITE SET */
+	int tries = 1;
+	while(tries <= ATTEMPTS){
+		printf("Attempt %d\n", tries);
+		tries++;
+		res = write(fd, SET, strlen(SET));
+	
+		printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
-	res = write(fd, SET, strlen(SET) + 1);
+		sleep(TIME_OUT);
 	
-	printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+		int i = 0;
+		int failed = 0;
+		for(i; i < 5; i++)
+		{
+			res = read(fd,&received_UA, 1);
+			if (res == -1)
+			{
+				failed = 1;
+				break;
+			}
+			UA[i]=received_UA;
+		}
+
+		printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+		if (check_UA(UA))
+			failed = 1;
 	
-	sleep(5);
+		if (failed == 0)
+			break;			
 	
-	
-	
+	}
+
+	sleep(1);
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
@@ -113,4 +144,12 @@ int main(int argc, char** argv)
 
     close(fd);
     return 0;
+}
+
+int check_UA(char *sent)
+{
+	int error = 0;
+	if (sent[0] != F || sent[1] != A || sent[2] != C_UA || sent[3] != (sent[1]^sent[2]) || sent[4] != F)
+		error = 1;
+	return error;
 }
