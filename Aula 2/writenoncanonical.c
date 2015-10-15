@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <signal.h>
 
 #define BAUDRATE B9600
 #define MODEMDEVICE "/dev/ttyS1"
@@ -29,7 +30,24 @@
 
 #define C_UA 0x03
 
-volatile int STOP=FALSE;
+volatile int STOP_st=FALSE;
+int flag=1, conta=1;
+
+int check_UA(char *sent)
+{
+	int error = 0;
+	if (sent[0] != F || sent[1] != A || sent[2] != C_UA || sent[3] != (sent[1]^sent[2]) || sent[4] != F)
+		error = 1;
+	return error;
+}
+
+void atende()                   // atende alarme
+{
+	printf("alarme # %d\n", conta);
+	flag=1;
+	conta++;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -44,6 +62,7 @@ int main(int argc, char** argv)
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
+	
 
 
   /*
@@ -51,15 +70,15 @@ int main(int argc, char** argv)
     because we don't want to get killed if linenoise sends CTRL-C.
   */
 
-
     fd = open(argv[1], O_RDWR | O_NOCTTY);
+	
     if (fd <0) {perror(argv[1]); exit(-1); }
 
     if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
       perror("tcgetattr");
       exit(-1);
     }
-
+	//nao passou
     bzero(&newtio, sizeof(newtio));
     newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
     newtio.c_iflag = IGNPAR;
@@ -71,7 +90,7 @@ int main(int argc, char** argv)
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
     newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
-
+	//nao passou
 
   /* 
     VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
@@ -112,18 +131,25 @@ int main(int argc, char** argv)
 	
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
-		tries++;
+	
 		res = write(fd, SET, strlen(SET));
 	
 		printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
-		sleep(TIME_OUT);
-	
+		sleep(3);
+
 		int i = 0;
 		int failed = 0;
+
 		int option = START;
-		while(!(STOP)) {	
+
+		while(!(STOP_st)) {
+		
 		res = read(fd, &flag_ST, 1);
+		if (flag_ST == 0)
+			break;
+		printf("option: %d\nflag_st: 0x%x\n\n", option, flag_ST);
+		sleep(1);
 
 		switch (option)
 		{
@@ -173,7 +199,7 @@ int main(int argc, char** argv)
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
-			else if (flag_ST == A^C_UA) //ver
+			else if (flag_ST == (A^C_UA)) //ver
 				{
 					option = BCC_OK;
 					UA[3] = flag_ST;
@@ -193,14 +219,16 @@ int main(int argc, char** argv)
 			break;
 
 		case STOP_ST:
-			STOP = TRUE;
+			STOP_st = TRUE;
 			break;
 
 		default:
 			break;
 		} 
 }
+
 		printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+		tries++;
 		if (check_UA(UA))
 			failed = 1;
 	
@@ -223,10 +251,4 @@ int main(int argc, char** argv)
     return 0;
 }
 
-int check_UA(char *sent)
-{
-	int error = 0;
-	if (sent[0] != F || sent[1] != A || sent[2] != C_UA || sent[3] != (sent[1]^sent[2]) || sent[4] != F)
-		error = 1;
-	return error;
-}
+
