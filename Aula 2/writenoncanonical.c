@@ -17,6 +17,13 @@
 #define C_SET 0x07
 #define BCC (A^C_SET)
 
+#define START 0
+#define FLAG_RCV 1
+#define A_RCV 2
+#define C_RCV 3
+#define BCC_OK 4
+#define STOP_ST 5
+
 #define ATTEMPTS 4
 #define TIME_OUT 3
 
