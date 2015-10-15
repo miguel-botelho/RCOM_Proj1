@@ -91,6 +91,7 @@ int main(int argc, char** argv)
 
 	char SET[5];
 	char received_UA;
+	char flag_ST;
 	char UA[5];
 	
 	SET[0] = F;
@@ -101,6 +102,7 @@ int main(int argc, char** argv)
 
 	/* WRITE SET */
 	int tries = 1;
+	
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
 		tries++;
@@ -112,17 +114,85 @@ int main(int argc, char** argv)
 	
 		int i = 0;
 		int failed = 0;
-		for(i; i < 5; i++)
-		{
-			res = read(fd,&received_UA, 1);
-			if (res == -1)
-			{
-				failed = 1;
-				break;
-			}
-			UA[i]=received_UA;
-		}
+		int option = START;
+		while(!(STOP)) {	
+		res = read(fd, &flag_ST, 1);
 
+		switch (option)
+		{
+		case START:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					UA[0] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case FLAG_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					UA[0] = flag_ST;
+				}
+			else if (flag_ST == A) //ver
+				{
+					option = A_RCV;
+					UA[1] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case A_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					UA[0] = flag_ST;
+				}
+			else if (flag_ST == C_UA) //ver
+				{
+					option = C_RCV;
+					UA[2] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case C_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					UA[0] = flag_ST;
+				}
+			else if (flag_ST == A^C_UA) //ver
+				{
+					option = BCC_OK;
+					UA[3] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case BCC_OK:
+			if (flag_ST == F) //ver
+				{
+					option = STOP_ST;
+					UA[4] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case STOP_ST:
+			STOP = TRUE;
+			break;
+
+		default:
+			break;
+		} 
+}
 		printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 		if (check_UA(UA))
 			failed = 1;
