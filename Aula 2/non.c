@@ -95,21 +95,11 @@ int main(int argc, char** argv)
 		
 		receive_UA(fd, UA);		
 		
-		if(check_UA(UA))
-		{
-			
-		}
-		else
+		if(!(check_UA(UA)))
 		{
 			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
-		}
-				
-	
+		}			
 	}
-    
-    
-    
-   
     
 }

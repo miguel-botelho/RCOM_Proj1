@@ -12,10 +12,13 @@ int receive_DISC(int fd, char * DISC);
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);
 
-int getStopST();
-void setStopST(int st);
+int getStopUA();
+void setStopUA(int st);
 
-int getStop();
-void setStop(int st);
+int getStopSET();
+void setStopSET(int st);
+
+int getStopDISC();
+void setStopDISC(int st);
 
 #endif /* ___STATE */
