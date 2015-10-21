@@ -68,8 +68,6 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-
-
   /* 
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
     o indicado no guião 
@@ -88,10 +86,10 @@ int main(int argc, char** argv)
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
 		tries = getTries();
-		send_Frame(fd, SET);
+		
+		send_SET(fd, SET);
     
-		int i = 0;
-		STOP_st = FALSE;		
+		setStopUA(FALSE);	
 		
 		receive_UA(fd, UA);
 		

@@ -24,4 +24,6 @@
 
 #define C_UA 0x03
 
+#define C_DISC 0x0B
+
 #endif /* UTILS */
