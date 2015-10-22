@@ -339,7 +339,7 @@ int check_UA(char *sent) {
 
 int check_DISC(char *DISC_rec) {
 	int error = 0;
-	if (DISC_rec[0] != F || DISC_rec[1] != A || DISC_rec[2] != C_UA || DISC_rec[3] != (DISC_rec[1]^DISC_rec[2]) || DISC_rec[4] != F)
+	if (DISC_rec[0] != F || DISC_rec[1] != A || DISC_rec[2] != C_DISC || DISC_rec[3] != (DISC_rec[1]^DISC_rec[2]) || DISC_rec[4] != F)
 		error = 1;
 	return error;
 }
