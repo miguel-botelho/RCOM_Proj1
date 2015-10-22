@@ -78,8 +78,8 @@ int main(int argc, char** argv)
     DISC_send[4] = F;
     
     do {
+      setStopDISC(FALSE);
       receive_DISC(fd, DISC);
-      fprintf(stderr, "what\n");
     }
     while(check_DISC(DISC));
     

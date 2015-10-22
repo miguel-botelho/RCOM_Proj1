@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     DISC[0] = F;
     DISC[1] = A;
     DISC[2] = C_DISC;
-    DISC[3] = A^C_DISC;
+    DISC[3] = DISC[1]^DISC[2];
     DISC[4] = F;
 
 
