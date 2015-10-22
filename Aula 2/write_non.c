@@ -89,11 +89,11 @@ int main(int argc, char** argv)
     
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
-		tries = getTries();
+		
     
 		send_DISC(fd, DISC);
 		
-		setStopDISC(FALSE);	
+		setStopDISC(FALSE);
 		
 		receive_DISC(fd, DISC_rec);
 		
@@ -104,8 +104,14 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			tries++;
+			if (tries == getTries())
+			{
+			    setTries(tries++);
+			}
 		}
+		
+		tries = getTries();
+		
 	
 	}	
 	

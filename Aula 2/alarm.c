@@ -20,3 +20,7 @@ int getTries() {
 void setFlag(int f) {
   flag = f;
 }
+
+void setTries(int t) {
+  tries = t;
+}

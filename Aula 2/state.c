@@ -63,7 +63,7 @@ int receive_UA(int fd, char *UA) {
 		int flag = getFlag();
 		if(flag){
 		      alarm(0);                 // activa alarme de 3s
-		      setFlag(0);
+		      setFlag(1);
 		      STOP_UA = TRUE;
 		   }
 
@@ -247,7 +247,7 @@ int receive_DISC(int fd, char *DISC_rec) {
 	int flag = getFlag();
 	    if(flag){
 		  alarm(0);            
-		  setFlag(0);
+		  setFlag(1);
 		  STOP_DISC = TRUE;
 		}
 

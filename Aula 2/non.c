@@ -79,6 +79,7 @@ int main(int argc, char** argv)
     
     do {
       receive_DISC(fd, DISC);
+      fprintf(stderr, "what\n");
     }
     while(check_DISC(DISC));
     
