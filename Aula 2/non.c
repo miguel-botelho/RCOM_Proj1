@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     do {
       receive_DISC(fd, DISC);
     }
-    while(check_DISC(DISC))
+    while(check_DISC(DISC));
     
     
     printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
