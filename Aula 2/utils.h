@@ -10,7 +10,9 @@
 #define F 0x7E
 #define A 0x03
 #define C_SET 0x07
-#define BCC (A^C_SET)
+#define BCC_SET (A^C_SET)
+#define BCC_UA (A^C_UA)
+#define BCC_DISC (A^C_DISC)
 
 #define START 0
 #define FLAG_RCV 1
