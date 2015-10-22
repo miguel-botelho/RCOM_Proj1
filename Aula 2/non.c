@@ -99,7 +99,11 @@ int main(int argc, char** argv)
 		{
 			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
-		}			
+		}
+		else
+		{
+		  tries++;
+		}
 	}
     
 }

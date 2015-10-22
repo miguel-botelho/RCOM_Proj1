@@ -1,7 +1,7 @@
 #include "alarm.h"
 
-static int flag = -1;
-static int tries = -1;
+static int flag = 1;
+static int tries = 1;
 
 void atende()  {
 	flag=1;

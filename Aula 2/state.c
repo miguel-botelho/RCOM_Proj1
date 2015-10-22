@@ -37,6 +37,14 @@ int send_DISC(int fd, char *DISC) {
   
   int res;
   
+  int flag = getFlag();
+	
+	if (flag)
+	{
+		alarm(3);
+		setFlag(0);
+	}
+  
   res = write(fd, DISC, sizeof(DISC));
 
   printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
@@ -54,7 +62,7 @@ int receive_UA(int fd, char *UA) {
 		res = read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		if(flag){
-		      alarm(3);                 // activa alarme de 3s
+		      alarm(0);                 // activa alarme de 3s
 		      setFlag(0);
 		      STOP_UA = TRUE;
 		   }
@@ -238,7 +246,7 @@ int receive_DISC(int fd, char *DISC_rec) {
 	
 	int flag = getFlag();
 	    if(flag){
-		  alarm(3);                 // activa alarme de 3s
+		  alarm(0);            
 		  setFlag(0);
 		  STOP_DISC = TRUE;
 		}
@@ -276,7 +284,7 @@ int receive_DISC(int fd, char *DISC_rec) {
 				option = FLAG_RCV;
 				DISC_rec[0] = flag_ST;
 			}
-		else if (flag_ST == C_SET) //ver
+		else if (flag_ST == C_DISC) //ver
 			{
 				option = C_RCV;
 				DISC_rec[2] = flag_ST;
