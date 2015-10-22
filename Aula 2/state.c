@@ -1,5 +1,6 @@
 #include "state.h"
 #include "utils.h"
+#include <stdio.h>
 
 static volatile int STOP_UA=FALSE;
 
@@ -115,7 +116,7 @@ int receive_UA(int fd, char *UA) {
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
-			else if (flag_ST == (A^C_UA)) //ver
+			else if (flag_ST == BCC_UA) //ver
 				{
 					option = BCC_OK;
 					UA[3] = flag_ST;
@@ -204,7 +205,7 @@ int receive_SET(int fd, char *SET) {
 				option = FLAG_RCV;
 				SET[0] = flag_ST;
 			}
-		else if (flag_ST == BCC) //ver
+		else if (flag_ST == BCC_SET) //ver
 			{
 				option = BCC_OK;
 				SET[3] = flag_ST;
@@ -239,9 +240,9 @@ int receive_DISC(int fd, char *DISC_rec) {
   char flag_ST;
   int res;
   int option = START;
-  
   while(!(STOP_DISC))
   {	
+
 	res = read(fd, &flag_ST, 1);
 	
 	int flag = getFlag();
@@ -250,7 +251,6 @@ int receive_DISC(int fd, char *DISC_rec) {
 		  setFlag(-1);
 		  STOP_DISC = TRUE;
 		}
-
 	switch (option)
 	{
 	case START:
@@ -299,7 +299,7 @@ int receive_DISC(int fd, char *DISC_rec) {
 				option = FLAG_RCV;
 				DISC_rec[0] = flag_ST;
 			}
-		else if (flag_ST == BCC) //ver
+		else if (flag_ST == BCC_DISC) //ver
 			{
 				option = BCC_OK;
 				DISC_rec[3] = flag_ST;
