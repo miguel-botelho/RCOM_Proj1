@@ -1,5 +1,6 @@
 #include "state.h"
 #include "utils.h"
+#include
 
 static volatile int STOP_UA=FALSE;
 
@@ -54,16 +55,14 @@ int receive_UA(int fd, char *UA) {
 		res = read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		if(flag){
-		      alarm(3);                 // activa alarme de 3s
-		      setFlag(0);
-		      STOP_UA = TRUE;
-		   }
+		    alarm(3);                 // activa alarme de 3s
+		    setFlag(0);
+		    STOP_UA = TRUE;
+		}
 
-		switch (option)
-		{
+		switch (option){
 		case START:
-			if (flag_ST == F) //ver
-				{
+			if (flag_ST == F){
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
@@ -72,13 +71,11 @@ int receive_UA(int fd, char *UA) {
 			break;
 
 		case FLAG_RCV:
-			if (flag_ST == F) //ver
-				{
+			if (flag_ST == F){
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
-			else if (flag_ST == A) //ver
-				{
+			else if (flag_ST == A){
 					option = A_RCV;
 					UA[1] = flag_ST;
 				}
@@ -87,13 +84,11 @@ int receive_UA(int fd, char *UA) {
 			break;
 
 		case A_RCV:
-			if (flag_ST == F) //ver
-				{
+			if (flag_ST == F){
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
-			else if (flag_ST == C_UA) //ver
-				{
+			else if (flag_ST == C_UA){
 					option = C_RCV;
 					UA[2] = flag_ST;
 				}
@@ -102,13 +97,11 @@ int receive_UA(int fd, char *UA) {
 			break;
 
 		case C_RCV:
-			if (flag_ST == F) //ver
-				{
+			if (flag_ST == F){
 					option = FLAG_RCV;
 					UA[0] = flag_ST;
 				}
-			else if (flag_ST == (A^C_UA)) //ver
-				{
+			else if (flag_ST == (A^C_UA)){
 					option = BCC_OK;
 					UA[3] = flag_ST;
 				}
@@ -117,8 +110,7 @@ int receive_UA(int fd, char *UA) {
 			break;
 
 		case BCC_OK:
-			if (flag_ST == F) //ver
-				{
+			if (flag_ST == F){
 					option = STOP_ST;
 					UA[4] = flag_ST;
 				}
