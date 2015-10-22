@@ -90,7 +90,6 @@ int main(int argc, char** argv)
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
 		
-    
 		send_DISC(fd, DISC);
 		
 		setStopDISC(FALSE);
@@ -100,7 +99,7 @@ int main(int argc, char** argv)
 		if(!(check_DISC(DISC_rec)))
 		{
 			printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
-			tries=99;
+			setTries(99);
 		}
 		else
 		{
