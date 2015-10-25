@@ -7,6 +7,9 @@
 #define FALSE 0
 #define TRUE 1
 
+#define FLAG 0x7E
+#define ESC 0x5E
+
 #define F 0x7E
 #define A 0x03
 #define C_SET 0x07
