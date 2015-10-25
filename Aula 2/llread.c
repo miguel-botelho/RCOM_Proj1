@@ -8,11 +8,31 @@
 #include <string.h>
 #include <signal.h>
 
+#define BUF_SIZE 255
 
 int llread(int fd, char* buffer)
 {
-	int string_length;
+	char buf[BUF_SIZE];
+
+	int string_length = 0;
 	int res = 0;
+
+	//abrir a porta
+	fd = open(argv[1], O_RDWR | O_NOCTTY);
+
+	if (fd <0)
+	{
+		perror(argv[1]);
+		exit(-1);
+	}
+
+	if ( tcgetattr(fd,&oldtio) == -1)
+	{ /* save current port settings */
+		perror("tcgetattr");
+		exit(-1);
+	}
+
+
 
 	while(1)
 	{
@@ -33,13 +53,13 @@ int llread(int fd, char* buffer)
 
 	// Enviar o RR1
 
-    char rr1[] = {SERIAL_FLAG,
-    SERIAL_A_ANS_RECEIVER,
-    SERIAL_C_RR_N1,
-    SERIAL_A_ANS_RECEIVER^SERIAL_C_RR_N1,
-    SERIAL_FLAG};
+	char rr1[] = {SERIAL_FLAG,
+			SERIAL_A_ANS_RECEIVER,
+			SERIAL_C_RR_N1,
+			SERIAL_A_ANS_RECEIVER^SERIAL_C_RR_N1,
+			SERIAL_FLAG};
 
-    write(fd,rr1,5);
+	write(fd,rr1,5);
 
 	return res;
 }
