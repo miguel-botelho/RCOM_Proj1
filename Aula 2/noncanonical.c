@@ -6,14 +6,17 @@
 #include <termios.h>
 #include <stdio.h>
 #include <signal.h>
-#include "alarm.h"
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
+#include "alarm.h"
 #include "link_layer.h"
 #include "utils.h"
 
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd;
     struct termios oldtio,newtio;
 	(void) signal(SIGALRM, atende);
     if ( (argc < 2) || 
@@ -69,7 +72,6 @@ int main(int argc, char** argv)
 
     
   ll_open(RECEIVER, fd);
-  
   
   ll_close(RECEIVER, fd);
   

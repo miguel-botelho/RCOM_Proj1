@@ -1,5 +1,8 @@
 #include "state.h"
 #include "utils.h"
+#include "alarm.h"
+
+#include <unistd.h>
 #include <stdio.h>
 
 static volatile int STOP_UA=FALSE;
@@ -7,7 +10,6 @@ static volatile int STOP_UA=FALSE;
 volatile int STOP_SET=FALSE;
 
 volatile int STOP_DISC=FALSE;
-
 
 int send_SET(int fd, char *SET) {
 	
@@ -24,6 +26,7 @@ int send_SET(int fd, char *SET) {
 
 	printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 	
+	return res;
 }
 
 int send_UA(int fd, char *UA) {
@@ -32,6 +35,8 @@ int send_UA(int fd, char *UA) {
   res = write(fd, UA, sizeof(UA));
 
   printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+
+  return res;
 }
 
 int send_DISC(int fd, char *DISC) {
@@ -49,19 +54,19 @@ int send_DISC(int fd, char *DISC) {
   res = write(fd, DISC, 5);
 
   printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+
+  return res;  
 }
 
 
-int receive_UA(int fd, char *UA) {
+void receive_UA(int fd, char *UA) {
 
-
-	int res;
 	int option = START;
 	char flag_ST;
 
 	while(!(STOP_UA)) {
 				
-		res = read(fd, &flag_ST, 1);
+		read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		if(flag && flag != -1){
 		      alarm(0);                 // activa alarme de 3s
@@ -147,16 +152,14 @@ int receive_UA(int fd, char *UA) {
 
 }
 
-int receive_SET(int fd, char *SET) {
+void receive_SET(int fd, char *SET) {
   
   char flag_ST;
-  int res;
-  unsigned int i = 0;
   int option = START;
   
   while(!(STOP_SET))
   {	
-	res = read(fd, &flag_ST, 1);
+	read(fd, &flag_ST, 1);
 
 	switch (option)
 	{
@@ -236,15 +239,15 @@ int receive_SET(int fd, char *SET) {
 
 }
 
-int receive_DISC(int fd, char *DISC_rec) {
+void receive_DISC(int fd, char *DISC_rec) {
 
   char flag_ST;
-  int res;
   int option = START;
+  
   while(!(STOP_DISC))
   {	
 
-	res = read(fd, &flag_ST, 1);
+	read(fd, &flag_ST, 1);
 	
 	int flag = getFlag();
 	    if(flag && flag != -1){

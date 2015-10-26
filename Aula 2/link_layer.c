@@ -1,17 +1,19 @@
 #include "link_layer.h"
 #include "utils.h"
+#include "state.h"
+#include "alarm.h"
+
+#include <unistd.h>
 #include <stdio.h>
 
-void ll_open(int flag, int fd)
-{
+void ll_open(int flag, int fd) {
     if (flag == RECEIVER)
 	ll_open_receiver(fd);
     else if (flag == TRANSMITTER)
 	ll_open_transmitter(fd);
 }
 
-void ll_close(int flag, int fd)
-{
+void ll_close(int flag, int fd) {
     if (flag == RECEIVER)
 	ll_close_receiver(fd);
     else if (flag == TRANSMITTER)

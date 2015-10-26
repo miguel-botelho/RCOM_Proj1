@@ -6,6 +6,11 @@
 #include <termios.h>
 #include <stdio.h>
 #include <signal.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
 #include "alarm.h"
 #include "state.h"
 #include "link_layer.h"
@@ -13,10 +18,9 @@
 
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd;
     struct termios oldtio,newtio;
-    char buf[255];
-    int i, sum = 0, speed = 0;
+
 	(void) signal(SIGALRM, atende);
     
     if ( (argc < 2) || 
@@ -77,7 +81,6 @@ int main(int argc, char** argv)
       ll_open(TRANSMITTER, fd);
       
       ll_close(TRANSMITTER, fd);
-  
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
