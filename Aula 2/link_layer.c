@@ -105,7 +105,8 @@ void ll_close_receiver(int fd) {
 		tries = getTries();
 		
 		send_DISC(fd, DISC_send);
-    
+    		
+
 		setStopUA(FALSE);	
 		
 		receive_UA(fd, UA);		

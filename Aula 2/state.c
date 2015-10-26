@@ -53,13 +53,14 @@ int send_DISC(int fd, char *DISC) {
 
 
 int receive_UA(int fd, char *UA) {
-	
+
+
 	int res;
 	int option = START;
 	char flag_ST;
 
 	while(!(STOP_UA)) {
-		
+				
 		res = read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		if(flag && flag != -1){

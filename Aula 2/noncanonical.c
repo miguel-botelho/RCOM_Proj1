@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <signal.h>
+#include "alarm.h"
 
 #include "link_layer.h"
 #include "utils.h"
@@ -13,7 +15,7 @@ int main(int argc, char** argv)
 {
     int fd,c, res;
     struct termios oldtio,newtio;
-
+	(void) signal(SIGALRM, atende);
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
   	      (strcmp("/dev/ttyS4", argv[1])!=0) )) {
