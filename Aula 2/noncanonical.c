@@ -72,6 +72,8 @@ int main(int argc, char** argv)
 
     
   ll_open(RECEIVER, fd);
+
+  setTries(0);
   
   ll_close(RECEIVER, fd);
   
