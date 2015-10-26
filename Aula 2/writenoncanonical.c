@@ -72,41 +72,11 @@ int main(int argc, char** argv)
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
     o indicado no guião 
   */
-	int tries = getTries();
-	char UA[5];
-	char SET[5];
-	SET[0] = F;
-	SET[1] = A;
-	SET[2] = C_SET;
-	SET[3] = BCC;
-	SET[4] = F;
-	
-	/* WRITE SET */
-	
-	while(tries <= ATTEMPTS){
-		printf("Attempt %d\n", tries);
-		tries = getTries();
-		
-		send_SET(fd, SET);
-
-		setStopUA(FALSE);	
-		
-		receive_UA(fd, UA);
-		
-		if(!(check_UA(UA)))
-		{
-		    printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
-		    tries=99;
-		}
-		else
-		{
-		    tries++;
-		}
-				
-	
-	}
-
-	sleep(1);
+  
+      ll_open(TRANSMITTER, fd);
+      
+      ll_close(TRANSMITTER, fd);
+  
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");

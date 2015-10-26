@@ -28,4 +28,8 @@
 
 #define C_DISC 0x0B
 
+#define RECEIVER 0
+#define TRANSMITTER 1
+
+
 #endif /* UTILS */

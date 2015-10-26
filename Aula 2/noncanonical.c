@@ -64,23 +64,13 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-  char SET[5];
-  char UA[5];
+    
+  ll_open(RECEIVER, fd);
   
-  UA[0] = F;
-  UA[1] = A;
-  UA[2] = C_UA;
-  UA[3] = A^C_UA;
-  UA[4] = F;
-
-  receive_SET(fd, SET);
   
-  printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
-
-  send_UA(fd, UA);
-
-    sleep(1);
-
+  ll_close(RECEIVER, fd);
+  
+  
 
 
   /* 
