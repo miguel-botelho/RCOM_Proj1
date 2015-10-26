@@ -8,6 +8,7 @@
 #include <signal.h>
 #include "alarm.h"
 #include "state.h"
+#include "link_layer.h"
 #include "utils.h"
 
 int main(int argc, char** argv)

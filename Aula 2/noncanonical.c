@@ -6,6 +6,7 @@
 #include <termios.h>
 #include <stdio.h>
 
+#include "link_layer.h"
 #include "utils.h"
 
 int main(int argc, char** argv)

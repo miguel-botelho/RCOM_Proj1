@@ -44,7 +44,7 @@ void ll_open_transmitter(int fd) {
 	SET[0] = F;
 	SET[1] = A;
 	SET[2] = C_SET;
-	SET[3] = BCC;
+	SET[3] = BCC_SET;
 	SET[4] = F;
 	
 	/* WRITE SET */
