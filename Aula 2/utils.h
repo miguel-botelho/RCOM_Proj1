@@ -8,7 +8,8 @@
 #define TRUE 1
 
 #define FLAG 0x7E
-#define ESC 0x5E
+#define ESC 0x7D
+#define SUBS 0x20
 
 #define F 0x7E
 #define A 0x03

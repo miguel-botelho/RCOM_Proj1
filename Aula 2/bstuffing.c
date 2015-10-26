@@ -1,25 +1,30 @@
 #include "bstuffing.h"
 
-int bytestuff(char * dataPacket, int size, char * stuffedPacket){
+int bytestuffding(char * dataPacket, int size, char * stuffedPacket){
 	int i;
 	int j;
 	for(i = 0, j = 0;i < size; i++, j++){
-		if(dataPacket[i] == FLAG || dataPacket[i] == ESC){
+		char data = dataPacket[i];
+		if(data == FLAG || data == ESC){
 			stuffedPacket[j] = ESC;
 			j++;
+			stuffedPacket[j] = data^SUBS;
+		}else{
+			stuffedPacket[j] = dataPacket[i];			
 		}
-		stuffedPacket[j] = dataPacket[i];			
 	}
 
 	return j;
 }
 
-int destuffing(char * stuffedPacket, int size, char * dataPacket){
+int bytedestuffing(char * stuffedPacket, int size, char * dataPacket){
 	int i;
 	int j;
 	for(i = 0, j = 0; j < size; i++; j++){
-		if(stuffedPacket[j] == ESC)
+		if(stuffedPacket[j] == ESC){
 			j++;
+			dataPacket[i] = stuffedPacket[j]^SUBS;
+		}
 		dataPacket[i] = stuffedPacket[j];
 	}
 }

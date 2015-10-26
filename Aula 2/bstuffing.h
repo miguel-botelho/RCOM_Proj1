@@ -10,7 +10,7 @@
  * @param stuffedPacket pointer to where the data packet will be stored after byte stuffing
  * @return size of the stuffed packet
  */
-int bytestuff(char * dataPacket, int size, char * stuffedPacket);
+int bytestuffing(char * dataPacket, int size, char * stuffedPacket);
 
 
 /**
@@ -20,6 +20,6 @@ int bytestuff(char * dataPacket, int size, char * stuffedPacket);
  * @param dataPacket pointer to where the destuffed data packet will be stored
  * @return size of the destuffed packet
  */
- int destuffing(char * stuffedPacket, int size, char * dataPacket);
+ int bytedestuffing(char * stuffedPacket, int size, char * dataPacket);
 
 #endif /* ___BSTUFFING */
