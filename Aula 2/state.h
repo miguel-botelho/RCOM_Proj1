@@ -9,7 +9,7 @@ void receive_SET(int fd, char *SET);
 void receive_UA(int fd, char *UA);
 void receive_DISC(int fd, char *DISC);
 void receive_RR(int fd, char *RR, int s);
-void receive_I(int fd, char *I, int size);
+int receive_FRAME(int fd, char *I, int size);
 
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);

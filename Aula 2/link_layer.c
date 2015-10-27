@@ -81,7 +81,7 @@ void ll_open_transmitter(LinkLayer_t link_layer) {
 
 void ll_close_receiver(LinkLayer_t link_layer) {
  
-    char DISC[5];
+    char DISC[MAX_FRAME_SIZE];
     char UA[5];
     char DISC_send[5];
     
@@ -94,6 +94,7 @@ void ll_close_receiver(LinkLayer_t link_layer) {
 
     do {
       setStopDISC(FALSE);
+
       receive_DISC(link_layer->fd, DISC);
     }while(check_DISC(DISC));
     
@@ -243,11 +244,10 @@ int ll_read(linkLayer_t link_layer, char *dataPacket) {
 	int dataPacketSize = 0;
 	int validated = FALSE;
 	while(!validated){
-		// ler
-		int maxFrameSize = link_layer->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
+//		int maxFrameSize = link_layer->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
 															  	  // + 2 = 2 flags (inicial e final)
 
-		char frame[maxFrameSize];
+		char frame[MAX_FRAME_SIZE];
 
 		int frameSize = receive_I(link_layer->fd, frame, maxFrameSize);
 

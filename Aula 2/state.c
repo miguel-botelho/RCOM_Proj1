@@ -399,7 +399,7 @@ int receive_RR(int fd, char *RR, int s) {
 	return r;
 }
 
-int receive_I(int fd, char *I, int size) {
+int receive_FRAME(int fd, char *I, int size) {
 
 	char flag_ST;
 	int data = 0;
