@@ -269,7 +269,7 @@ int ll_read(settings set, char *dataPacket) {
 
 		if(framedPacket[1] != (s<<5)){
 			if(currC == (s ^ 0x1)<<5)
-				//sendRR;
+				send_RR(currC);
 
 
 			if(check_SET(framedPacket) && framedPacketSize == 5){
@@ -303,8 +303,8 @@ int ll_read(settings set, char *dataPacket) {
 		validated = TRUE;
 	}
 
-		// mandar rr
-		//fazer update ao s
+		send_RR(s ^ 0x1);
+		s ^= 0x01;
 
 		return dataPacketSize;
 }
