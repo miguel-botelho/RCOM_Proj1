@@ -180,7 +180,7 @@ void ll_close_transmitter(int fd) {
 	send_UA(fd, UA);
 }
 
-int ll_write(settings set, char *	data_packet, int size) {
+int ll_write(linkLayer_t link_layer, char * data_packet, int size) {
 
 	char frameAdder[3 + 1 + size];
 
@@ -214,16 +214,16 @@ int ll_write(settings set, char *	data_packet, int size) {
 	setTries(1);
 	int tries = getTries();
 
-	while (tries < set->maxTries) {
+	while (tries < link_layer->maxTries) {
 
-		write(set->fd, frame, frameSize); //enviar packet
+		write(link_layer->fd, frame, frameSize); //enviar packet
 
 		alarm(3);
 		setFlag(1);
 
 		char answerRR[5];
 
-		char ans = receive_RR(set->fd, answerRR, current_s); //receber RR
+		char ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
 
 		tries = getTries();
 
@@ -235,23 +235,23 @@ int ll_write(settings set, char *	data_packet, int size) {
 	}
 
 
-	if (tries == set->maxTries)
+	if (tries == link_layer->maxTries)
 		return -1;
 
 	return frameSize;
 }
 
-int ll_read(settings set, char *dataPacket) {
+int ll_read(linkLayer_t link_layer, char *dataPacket) {
 	int dataPacketSize = 0;
 	int validated = FALSE;
 	while(!validated){
 		// ler
-		int maxFrameSize = set->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
+		int maxFrameSize = link_layer->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
 															  	  // + 2 = 2 flags (inicial e final)
 
 		char frame[maxFrameSize];
 
-		int frameSize = receive_I(set->fd, frame, maxFrameSize);
+		int frameSize = receive_I(link_layer->fd, frame, maxFrameSize);
 
 		// remover flags
 		char * stuffedPacket = frame + sizeof(*frame);
@@ -280,7 +280,7 @@ int ll_read(settings set, char *dataPacket) {
 			    UA[2] = C_UA;
 			    UA[3] = A^C_UA;
 			    UA[4] = F;
-				send_UA(set->fd,UA);
+				send_UA(link_layer->fd,UA);
 			}
 			continue;
 		}
