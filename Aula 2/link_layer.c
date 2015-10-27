@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+static s = 0;
+
 void ll_open(int flag, int fd) {
     if (flag == RECEIVER)
 	ll_open_receiver(fd);
@@ -74,12 +76,11 @@ void ll_open_transmitter(int fd) {
 	}
 
 	sleep(1);
-  
 }
 
 void ll_close_receiver(int fd) {
  
-     char DISC[5];
+    char DISC[5];
     char UA[5];
     char DISC_send[5];
     
@@ -176,3 +177,84 @@ void ll_close_transmitter(int fd) {
 	send_UA(fd, UA);
 }
 
+int ll_write(settings set, char *	data_packet, int size) {
+
+	char frameAdder[3 + 1 + size];
+
+	int current_s = s;
+
+	char C = 0;
+	C = C|(S << 5);
+	frameAdder[0] = A;
+	frameAdder[1] = C;
+	frameAdder[2] = frameAdder[1] ^ frameAdder[2];
+
+	int i = 1;
+	frameAdder[3] = data_packet[0];
+
+	char bcc_2 = frameAdder[3];
+	for (i; i < size + 3; i++) {
+		frameAdder[i+3]=data_packet[i];
+		bcc_2^=data_packet[i];
+	}
+	frameAdder[size+3] = bcc_2;
+
+	char frame[(size + 4) * 2 + 1];
+	char * stuffedPacket = frame + sizeof(*frame);
+	int size_stuffed_packet = bytestuffing(frameAdder, size + 4, stuffedPacket);
+
+	int frameSize = size_stuffed_packet + 2;
+
+	frame[0] = FLAG;
+	frame[frameSize - 1] = FLAG;
+
+	setTries(1);
+	int tries = getTries();
+
+	while (tries < set->maxTries) {
+
+		write(set->fd, frame, frameSize); //enviar packet
+
+		alarm(3);
+		setFlag(1);
+
+		char answerRR[5];
+
+		char ans = receive_RR(set->fd, answerRR, current_s); //receber RR
+
+		tries = getTries();
+
+		if (ans == -1) {
+			continue;
+		}
+		s = ans;
+		break;	
+	}
+
+
+	if (tries == set->maxTries)
+		return -1;
+
+	return frameSize;
+}
+
+int ll_read(settings set, char *data_packet) {
+
+	// ler
+	int frameSize = set->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
+														  	  // + 2 = 2 flags (inicial e final)
+
+	char frame[frameSize];
+
+	receive_I(set->fd, frame, frameSize);
+
+	// remover flags
+
+	// destuffing
+
+	// validar A, C, BCC1,2
+
+	// remover frameHeader
+
+	// fazer store e retornar o tamanho
+}

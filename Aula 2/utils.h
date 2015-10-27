@@ -13,6 +13,7 @@
 #define BCC_SET (A^C_SET)
 #define BCC_UA (A^C_UA)
 #define BCC_DISC (A^C_DISC)
+#define A_RECEPTOR 0x01
 
 #define START 0
 #define FLAG_RCV 1

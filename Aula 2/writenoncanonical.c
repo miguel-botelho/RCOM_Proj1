@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   
       ll_open(TRANSMITTER, fd);
 
-      setTries(0);
+      setTries(1);
       
       ll_close(TRANSMITTER, fd);
    

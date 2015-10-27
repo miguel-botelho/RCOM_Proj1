@@ -7,9 +7,13 @@
 
 static volatile int STOP_UA=FALSE;
 
-volatile int STOP_SET=FALSE;
+static volatile int STOP_SET=FALSE;
 
-volatile int STOP_DISC=FALSE;
+static volatile int STOP_DISC=FALSE;
+
+static volatile int STOP_RR=FALSE;
+
+static volatile int STOP_I=FALSE;
 
 int send_SET(int fd, char *SET) {
 	
@@ -69,7 +73,7 @@ void receive_UA(int fd, char *UA) {
 		read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		if(flag && flag != -1){
-		      alarm(0);                 // activa alarme de 3s
+		      alarm(0);
 		      setFlag(-1);
 		      STOP_UA = TRUE;
 		   }
@@ -149,7 +153,6 @@ void receive_UA(int fd, char *UA) {
 			break;
 		} 
 	}
-
 }
 
 void receive_SET(int fd, char *SET) {
@@ -236,7 +239,6 @@ void receive_SET(int fd, char *SET) {
 		break;
 	} 
   }
-
 }
 
 void receive_DISC(int fd, char *DISC_rec) {
@@ -330,7 +332,166 @@ void receive_DISC(int fd, char *DISC_rec) {
 		break;
 	} 
   }
- 
+}
+
+int receive_RR(int fd, char *RR, int s) {
+
+	char flag_ST;
+	int option = START;
+	int r = s ? 0 : 1;
+	int c_rr = 1 | (r << 5); 
+
+	while(!(STOP_RR))
+	{
+		read = (fd, &flag_ST, 1);
+
+		int flag = getFlag();
+		if(flag && flag != -1){
+		    alarm(0);
+		    setFlag(-1);
+		    STOP_RR = TRUE;
+		    return -1;
+		}
+
+
+		switch (option) {
+		case START:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					RR[0] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+		case FLAG_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					RR[0] = flag_ST;
+				}
+			else if (flag_ST == A) //ver
+				{
+					option = A_RCV;
+					RR[1] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+		case A_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					RR[0] = flag_ST;
+				}
+			else if (flag_ST == c_rr) //ver
+				{
+					option = C_RCV;
+					RR[2] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+		case C_RCV:
+			if (flag_ST == F) //ver
+				{
+					option = FLAG_RCV;
+					RR[0] = flag_ST;
+				}
+			else if (flag_ST == c_rr^A) //ver
+				{
+					option = BCC_OK;
+					RR[3] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+		case BCC_OK:
+			if (flag_ST == F) //ver
+				{
+					option = STOP_ST;
+					RR[4] = flag_ST;
+				}
+			else
+				option = START;
+			break;
+
+		case STOP_ST:
+			STOP_RR = TRUE;
+			break;
+		default:
+			break;
+		}
+	}
+	return r;
+}
+
+int receive_I(int fd, char *I, int size) {
+
+	char flag_ST;
+	int data = 0;
+	int option = START;
+
+	while(!(STOP_I))
+	{
+		read = (fd, &flag_ST, 1);
+
+		switch (option) {
+		case START:
+			data = 0;
+			if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				I[0] = flag_ST;
+				data++;
+			}
+			else
+				option = START;
+			break;
+		case FLAG_RCV:
+			data = 1;
+			if (flag_ST == F) //ver
+			{
+				option = FLAG_RCV;
+				I[0] = flag_ST;
+			}
+			else
+			{
+				I[data] = flag_ST;
+				data++;
+				option = A_RCV;
+			}
+			break;
+		case A_RCV:
+			if (data >= 6 && flag_ST == F)
+			{
+				I[data] = flag_ST;
+				option = STOP_ST;
+			}
+			else if (data > size)
+			{
+				option = START;
+			}
+			else if (data < 6 && flag_ST == F)
+			{
+				option = A_RCV;
+			}
+			else
+			{
+				I[data] = flag_ST;
+				data++;
+				option = A_RCV;
+			}
+			break;
+		case STOP_ST:
+			data++;
+			STOP_I = TRUE;
+			break;
+		default:
+			break;
+		}
+	}
+	return data;
 }
 
 
@@ -370,4 +531,12 @@ int getStopDISC() {
 
 void setStopDISC(int st) {
   STOP_DISC = st;
+}
+
+void setStopRR(int st) {
+	STOP_RR = st;
+}
+
+int getStopRR() {
+	return STOP_RR;
 }
