@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "state.h"
 #include "alarm.h"
+#include "bstuffing.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -123,6 +124,8 @@ void ll_close_receiver(int fd) {
 		{
 		  tries++;
 		}
+
+		//TODO esperar por I e enviar RR com nr a seguir
 	}
 }
 
@@ -238,23 +241,70 @@ int ll_write(settings set, char *	data_packet, int size) {
 	return frameSize;
 }
 
-int ll_read(settings set, char *data_packet) {
+int ll_read(settings set, char *dataPacket) {
+	int dataPacketSize = 0;
+	int validated = FALSE;
+	while(!validated){
+		// ler
+		int maxFrameSize = set->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
+															  	  // + 2 = 2 flags (inicial e final)
 
-	// ler
-	int frameSize = set->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
-														  	  // + 2 = 2 flags (inicial e final)
+		char frame[maxFrameSize];
 
-	char frame[frameSize];
+		int frameSize = receive_I(set->fd, frame, maxFrameSize);
 
-	receive_I(set->fd, frame, frameSize);
+		// remover flags
+		char * stuffedPacket = frame + sizeof(*frame);
+		int stuffedPacketSize  = frameSize - 2;
 
-	// remover flags
+		// destuffing
+		char * framedPacket[stuffedPacketSize];
+		int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
 
-	// destuffing
+		// validar A, C, BCC1,2
+		if(framedPacket[0] != A)
+			continue;
 
-	// validar A, C, BCC1,2
+		char currC = (s<<5);
 
-	// remover frameHeader
+		if(framedPacket[1] != (s<<5)){
+			if(currC == (s ^ 0x1)<<5)
+				//sendRR;
 
-	// fazer store e retornar o tamanho
+
+			if(check_SET(framedPacket) && framedPacketSize == 5){
+				char UA[5];
+
+			    UA[0] = F;
+			    UA[1] = A;
+			    UA[2] = C_UA;
+			    UA[3] = A^C_UA;
+			    UA[4] = F;
+				send_UA(set->fd,UA);
+			}
+			continue;
+		}
+
+		if(framedPacket[2] != A ^ currC)
+			continue;
+		char bcc_2 = framedPacket[3];
+		dataPacket[0] = framedPacket[3];
+		int i = 4;
+		for(i; i < framedPacketSize - 1; i++){
+			dataPacket[i-3] = framedPacket[i];
+			bcc_2 ^= framedPacket[i];
+		}
+
+		if(bcc_2 != framedPacket[framedPacketSize - 1]);
+			continue;
+
+		dataPacketSize = framedPacketSize - 4;
+
+		validated = TRUE;
+	}
+
+		// mandar rr
+		//fazer update ao s
+
+		return dataPacketSize;
 }
