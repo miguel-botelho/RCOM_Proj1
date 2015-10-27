@@ -9,21 +9,21 @@
 
 static s = 0;
 
-void ll_open(int flag, int fd) {
+void ll_open(int flag, LinkLayer_t link_layer) {
     if (flag == RECEIVER)
-	ll_open_receiver(fd);
+	ll_open_receiver(link_layer->fd);
     else if (flag == TRANSMITTER)
-	ll_open_transmitter(fd);
+	ll_open_transmitter(link_layer->fd);
 }
 
-void ll_close(int flag, int fd) {
+void ll_close(int flag, LinkLayer_t link_layer) {
     if (flag == RECEIVER)
-	ll_close_receiver(fd);
+	ll_close_receiver(link_layer->fd);
     else if (flag == TRANSMITTER)
-	ll_close_transmitter(fd);
+	ll_close_transmitter(link_layer->fd);
 }
 
-void ll_open_receiver(int fd) {
+void ll_open_receiver(LinkLayer_t link_layer) {
     char SET[5];
     char UA[5];
     
@@ -33,16 +33,16 @@ void ll_open_receiver(int fd) {
     UA[3] = A^C_UA;
     UA[4] = F;
 
-    receive_SET(fd, SET);
+    receive_SET(link_layer->fd, SET);
     
     printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
-    send_UA(fd, UA);
+    send_UA(link_layer->fd, UA);
 
     sleep(1);
 }
 
-void ll_open_transmitter(int fd) {
+void ll_open_transmitter(LinkLayer_t link_layer) {
 	int tries = getTries();
 	char UA[5];
 	char SET[5];
@@ -58,11 +58,11 @@ void ll_open_transmitter(int fd) {
 		printf("Attempt %d\n", tries);
 		tries = getTries();
 		
-		send_SET(fd, SET);
+		send_SET(link_layer->fd, SET);
 
 		setStopUA(FALSE);	
 		
-		receive_UA(fd, UA);
+		receive_UA(link_layer->fd, UA);
 		
 		if(!(check_UA(UA)))
 		{
@@ -79,7 +79,7 @@ void ll_open_transmitter(int fd) {
 	sleep(1);
 }
 
-void ll_close_receiver(int fd) {
+void ll_close_receiver(LinkLayer_t link_layer) {
  
     char DISC[5];
     char UA[5];
@@ -94,7 +94,7 @@ void ll_close_receiver(int fd) {
 
     do {
       setStopDISC(FALSE);
-      receive_DISC(fd, DISC);
+      receive_DISC(link_layer->fd, DISC);
     }while(check_DISC(DISC));
     
     
@@ -108,20 +108,18 @@ void ll_close_receiver(int fd) {
 		printf("Attempt %d\n", tries);
 		tries = getTries();
 		
-		send_DISC(fd, DISC_send);
+		send_DISC(link_layer->fd, DISC_send);
     		
 
 		setStopUA(FALSE);	
 		
-		receive_UA(fd, UA);		
+		receive_UA(link_layer->fd, UA);		
 		
-		if(!(check_UA(UA)))
-		{
+		if(!(check_UA(UA))){
 			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
 		}
-		else
-		{
+		else{
 		  tries++;
 		}
 
@@ -129,7 +127,7 @@ void ll_close_receiver(int fd) {
 	}
 }
 
-void ll_close_transmitter(int fd) {
+void ll_close_transmitter(LinkLayer_t link_layer) {
   
     char DISC[5];
     char DISC_rec[5];
@@ -153,11 +151,11 @@ void ll_close_transmitter(int fd) {
 	while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
 		
-		send_DISC(fd, DISC);
+		send_DISC(link_layer->fd, DISC);
 		
 		setStopDISC(FALSE);
 		
-		receive_DISC(fd, DISC_rec);
+		receive_DISC(link_layer->fd, DISC_rec);
 		
 		if(!(check_DISC(DISC_rec)))
 		{
@@ -177,7 +175,7 @@ void ll_close_transmitter(int fd) {
 	
 	}	
 	
-	send_UA(fd, UA);
+	send_UA(link_layer->fd, UA);
 }
 
 int ll_write(linkLayer_t link_layer, char * data_packet, int size) {
