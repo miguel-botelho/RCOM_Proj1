@@ -91,11 +91,16 @@ void ll_close_receiver(LinkLayer_t link_layer) {
     DISC_send[3] = A^C_DISC;
     DISC_send[4] = F;
     
+    int diskSize = 0;
+    int dataPacket[MAX_FRAME_SIZE];
 
     do {
       setStopDISC(FALSE);
-
-      receive_DISC(link_layer->fd, DISC);
+      diskSize = receive_FRAME(link_layer->fd, DISC);
+      int result = check_I(DISK, diskSize, dataPacket, s);
+      if(result == RE_SEND_RR){
+      	send_RR(s);
+      }
     }while(check_DISC(DISC));
     
     
@@ -249,56 +254,34 @@ int ll_read(linkLayer_t link_layer, char *dataPacket) {
 
 		char frame[MAX_FRAME_SIZE];
 
-		int frameSize = receive_I(link_layer->fd, frame, maxFrameSize);
+		STOP_FRAME = FALSE;
+		int frameSize = receive_FRAME(link_layer->fd, frame, maxFrameSize);
 
-		// remover flags
-		char * stuffedPacket = frame + sizeof(*frame);
-		int stuffedPacketSize  = frameSize - 2;
 
-		// destuffing
-		char * framedPacket[stuffedPacketSize];
-		int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
+		dataPacketSize = check_I(char * stuffedPacket, int stuffedPacketSize, char * dataPacket, int s);
 
-		// validar A, C, BCC1,2
-		if(framedPacket[0] != A)
-			continue;
-
-		char currC = (s<<5);
-
-		if(framedPacket[1] != (s<<5)){
-			if(currC == (s ^ 0x1)<<5)
+		switch(dataPacketSize){
+			case FAILED:
+				break;
+			case RE_SEND_RR:
+				char currC = (s<<5);
 				send_RR(currC);
-
-
-			if(check_SET(framedPacket) && framedPacketSize == 5){
+				break;
+			case RE_SEND_SET:
 				char UA[5];
-
 			    UA[0] = F;
 			    UA[1] = A;
 			    UA[2] = C_UA;
 			    UA[3] = A^C_UA;
 			    UA[4] = F;
+
 				send_UA(link_layer->fd,UA);
-			}
-			continue;
+				break;
+			default:
+				validated = TRUE;
 		}
 
-		if(framedPacket[2] != A ^ currC)
-			continue;
-		char bcc_2 = framedPacket[3];
-		dataPacket[0] = framedPacket[3];
-		int i = 4;
-		for(i; i < framedPacketSize - 1; i++){
-			dataPacket[i-3] = framedPacket[i];
-			bcc_2 ^= framedPacket[i];
-		}
 
-		if(bcc_2 != framedPacket[framedPacketSize - 1]);
-			continue;
-
-		dataPacketSize = framedPacketSize - 4;
-
-		validated = TRUE;
 	}
 
 		send_RR(s ^ 0x1);

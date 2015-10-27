@@ -10,9 +10,11 @@ void receive_UA(int fd, char *UA);
 void receive_DISC(int fd, char *DISC);
 void receive_RR(int fd, char *RR, int s);
 int receive_FRAME(int fd, char *I, int size);
+int receive_FRAME(int fd, char *FRAME);
 
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);
+int check_I(char * stuffedPacket, int stuffedPacketSize, char * dataPacket, int s);
 
 int getStopUA();
 void setStopUA(int st);
@@ -22,5 +24,9 @@ void setStopSET(int st);
 
 int getStopDISC();
 void setStopDISC(int st);
+
+void setStopFRAME(int st);
+int getStopFRAME();
+
 
 #endif /* ___STATE */
