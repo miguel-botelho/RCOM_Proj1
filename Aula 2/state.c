@@ -399,7 +399,7 @@ int receive_RR(int fd, char *RR, int s) {
 	return r;
 }
 
-int receive_FRAME(int fd, char *I, int size) {
+int receive_FRAME(int fd, char *I) {
 
 	char flag_ST;
 	int data = 0;
@@ -436,7 +436,7 @@ int receive_FRAME(int fd, char *I, int size) {
 					I[data] = flag_ST;
 					option = STOP_ST;
 				}
-				else if (data > size){
+				else if (data > MAX_FRAME_SIZE){
 					option = START;
 				}
 				else if (data < 6 && flag_ST == F){
