@@ -77,6 +77,7 @@ int send_RR(int fd, int r){
 	return 0;
 }
 
+
 void receive_UA(int fd, char *UA) {
 
 	int option = START;
@@ -520,6 +521,7 @@ int receive_FRAME(int fd, char *FRAME){
 	}
 	return data;
 }
+
 
 int check_UA(char *sent) {
 	int error = 0;

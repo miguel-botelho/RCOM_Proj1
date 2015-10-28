@@ -13,6 +13,7 @@
 #include "alarm.h"
 #include "link_layer.h"
 #include "utils.h"
+#include "app_layer.h"
 
 int main(int argc, char** argv) {
     
@@ -61,8 +62,6 @@ int main(int argc, char** argv) {
       leitura do(s) próximo(s) caracter(es)
     */
 
-
-
     tcflush(fd, TCIOFLUSH);
 
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
@@ -81,12 +80,9 @@ int main(int argc, char** argv) {
     link_layer->sequenceNumber = 0;
     link_layer->timeout = 1;
     link_layer->maxTries = 5;
+    link_layer->status = RECEIVER;
 
-     ll_open(RECEIVER, link_layer);
-
-     setTries(1);
-    
-     ll_close(RECEIVER, link_layer);
+    app_layer(link_layer, argv);
 
     /* 
       O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 

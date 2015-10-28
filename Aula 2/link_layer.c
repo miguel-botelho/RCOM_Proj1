@@ -1,8 +1,5 @@
 #include "link_layer.h"
-
-
 #include "state.h"
-
 #include "alarm.h"
 #include "bstuffing.h"
 
@@ -11,17 +8,17 @@
 
 static int s = 0;
 
-void ll_open(int flag, LinkLayer *link_layer) {
-    if (flag == RECEIVER)
+void ll_open(LinkLayer *link_layer) {
+    if (link_layer->status == RECEIVER)
 	ll_open_receiver(link_layer);
-    else if (flag == TRANSMITTER)
+    else if (link_layer->status == TRANSMITTER)
 	ll_open_transmitter(link_layer);
 }
 
-void ll_close(int flag, LinkLayer *link_layer) {
-    if (flag == RECEIVER)
+void ll_close(LinkLayer *link_layer) {
+    if (link_layer->status == RECEIVER)
 	ll_close_receiver(link_layer);
-    else if (flag == TRANSMITTER)
+    else if (link_layer->status == TRANSMITTER)
 	ll_close_transmitter(link_layer);
 }
 

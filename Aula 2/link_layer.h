@@ -6,8 +6,8 @@
 #define MAX_FRAME_SIZE 100										//TEM QUE SER PAR
 #define MAX_PACKE_SIZE ((MAX_FRAME_SIZE - 2 - 2*(3 + 1)) / 2)
 
-void ll_open(int flag, LinkLayer *link_layer);
-void ll_close(int flag, LinkLayer *link_layer);
+void ll_open(LinkLayer *link_layer);
+void ll_close(LinkLayer *link_layer);
 
 void ll_open_receiver(LinkLayer *link_layer);
 void ll_open_transmitter(LinkLayer *link_layer);

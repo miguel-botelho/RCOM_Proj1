@@ -8,11 +8,12 @@
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h> 
 
 #include "utils.h"
 #include "alarm.h"
 #include "link_layer.h"
+#include "app_layer.h"
 
 int main(int argc, char** argv) {
     int fd;
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
     o indicado no guião 
   */
   	
-  	char* port = "kek";
+    char* port = "kek";
 
     link_layer->fd = fd;
     link_layer->baudRate = BAUDRATE;
@@ -84,12 +85,9 @@ int main(int argc, char** argv) {
     link_layer->sequenceNumber = 0;
     link_layer->timeout = 1;
     link_layer->maxTries = 5;
+    link_layer->status = TRANSMITTER;
 
-	ll_open(TRANSMITTER, link_layer);
-
-	setTries(1);
-	  
-	ll_close(TRANSMITTER, link_layer);
+    app_layer(link_layer, argv);
 
 
    
