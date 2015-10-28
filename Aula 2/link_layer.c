@@ -1,10 +1,5 @@
 #include "link_layer.h"
-#include "state.h"
-#include "alarm.h"
-#include "bstuffing.h"
 
-#include <unistd.h>
-#include <stdio.h>
 
 static int s = 0;
 
@@ -80,7 +75,7 @@ void ll_open_transmitter(LinkLayer *link_layer) {
 
 void ll_close_receiver(LinkLayer *link_layer) {
  
-    char DISC[MAX_FRAME_SIZE];
+    char DISC[link_layer->maxFrameSize];
     char UA[5];
     char DISC_send[5];
     
@@ -91,7 +86,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     DISC_send[4] = F;
     
     int diskSize = 0;
-    char dataPacket[MAX_FRAME_SIZE]; // querias por int aqui? ok...
+    char dataPacket[link_layer->maxFrameSize]; // querias por int aqui? ok...
 
     do {
       setStopDISC(FALSE);
@@ -183,8 +178,8 @@ void ll_close_transmitter(LinkLayer *link_layer) {
 	send_UA(link_layer->fd, UA);
 }
 
-int ll_write(LinkLayer *link_layer, char * data_packet, int size) {
-
+int ll_write(LinkLayer *link_layer, int size) {
+	char * data_packet = link_layer->dataPacket;
 	char frameAdder[3 + 1 + size];
 
 	int current_s = s;
@@ -244,7 +239,8 @@ int ll_write(LinkLayer *link_layer, char * data_packet, int size) {
 	return frameSize;
 }
 
-int ll_read(LinkLayer *link_layer, char *dataPacket) {
+int ll_read(LinkLayer * link_layer) {
+	char *dataPacket = link_layer->dataPacket;
 	int dataPacketSize = 0;
 	int validated = FALSE;
 	char currC;
@@ -253,7 +249,7 @@ int ll_read(LinkLayer *link_layer, char *dataPacket) {
 
 	while(!validated)
 	{
-		char frame[MAX_FRAME_SIZE];
+		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
 		int frameSize = receive_FRAME(link_layer->fd, frame);
@@ -287,4 +283,71 @@ int ll_read(LinkLayer *link_layer, char *dataPacket) {
 		s ^= 0x01;
 
 		return dataPacketSize;
+}
+
+
+
+int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
+    struct termios * oldtio = malloc(sizeof(struct termios));
+    struct termios oldtio, newtio;
+	
+	memcpy(newLinkLayer->port, port, sizeof(port));
+
+	int fd = open(port, O_RDWR | O_NOCTTY );
+	if (fd < 0) {
+		fprintf(stderr, "Error opening port %s\n", port);
+		exit (-1);
+	}
+
+
+	if ( tcgetattr(fd,oldtio) == -1) { /* save current port settings */
+      perror("tcgetattr");
+      exit(-1);
+    }
+	//nao passou
+    bzero(&newtio, sizeof(newtio));
+    newtio.c_cflag = baudRate | CS8 | CLOCAL | CREAD;
+    newtio.c_iflag = IGNPAR;
+    newtio.c_oflag = 0;
+
+    /* set input mode (non-canonical, no echo,...) */
+    newtio.c_lflag = 0;
+
+    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
+
+	/* 
+	VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
+	leitura do(s) próximo(s) caracter(es)
+	*/
+
+
+    tcflush(fd, TCIOFLUSH);
+
+    if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
+      perror("tcsetattr");
+      exit(-1);
+    }
+
+	newLinkLayer->fd = fd;
+    newLinkLayer->baudRate = baudRate;
+    newLinkLayer->port = port;
+    newLinkLayer->sequenceNumber = sequenceNumber;
+    newLinkLayer->timeout = timeout;
+    newLinkLayer->maxTries = maxTries;
+    newLinkLayer->maxFrameSize = maxFrameSize;
+    newLinkLayer->status = status;
+    newLinkLayer->oldtio = oldtio;
+
+    printf("New termios structure set\n");
+
+}
+
+
+void ll_end(LinkLayer * linkLayer){
+	if ( tcsetattr(linkLayer->fd,TCSANOW,linkLayer->oldtio) == -1) {
+      perror("tcsetattr");
+      exit(-1);
+    }
+   close(fd);
 }

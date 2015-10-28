@@ -32,14 +32,15 @@ void app_layer_receiver(LinkLayer *link_layer) {
 
 void app_layer_transmitter(LinkLayer *link_layer, char** argv) {
 
-
 	int file;
-	char file_buffer;
+	char * file_buffer;
     struct stat file_stat;
 
     file = open(argv[2], O_RDONLY);
 
     fstat(file, &file_stat);
+
+    file_buffer = malloc(file_stat);
 
     read(file, &file_buffer, file_stat.st_size);
 
@@ -64,7 +65,6 @@ void app_layer_transmitter(LinkLayer *link_layer, char** argv) {
 	controlPacketStart[3 + controlPacketStart[2] + 2] = strlen(argv[2]) + 1; //+ 1 porque /0
 
 	memcpy(&controlPacketStart[i + 3 + controlPacketStart[2] + 3], argv[2], strlen(argv[2]) +1);
-
 
 	setTries(1);
 	  
