@@ -1,7 +1,6 @@
 #include "bstuffing.h"
-#include "utils.h"
 
-int bytestuffing(char * dataPacket, int size, char * stuffedPacket){
+int bytestuffding(char * dataPacket, int size, char * stuffedPacket){
 	int i;
 	int j;
 	for(i = 0, j = 0;i < size; i++, j++){
