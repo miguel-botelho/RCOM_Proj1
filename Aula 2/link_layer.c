@@ -58,19 +58,15 @@ void ll_open_transmitter(LinkLayer *link_layer) {
 		
 		receive_UA(link_layer->fd, UA);
 		
-		if(!(check_UA(UA)))
-		{
+		if(!(check_UA(UA))){
 		    printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 		    tries=99;
-		}
-		else
-		{
+		}else{
 		    tries++;
 		}
 				
 	}
 
-	sleep(1);
 }
 
 void ll_close_receiver(LinkLayer *link_layer) {
@@ -99,9 +95,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     
     
     printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
-    
-    // por while
-    
+        
     int tries = getTries();	
     
     while(tries <= ATTEMPTS){
@@ -338,6 +332,8 @@ int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int 
     newLinkLayer->maxFrameSize = maxFrameSize;
     newLinkLayer->status = status;
     newLinkLayer->oldtio = oldtio;
+
+    newLinkLayer->dataPacket = mmalloc( (maxFrameSize - 2)/2 - (3 + 1));
 
     printf("New termios structure set\n");
 

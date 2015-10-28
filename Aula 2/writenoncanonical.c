@@ -37,8 +37,16 @@ int main(int argc, char** argv) {
 
   ll_init(link_layer, argv[1], BAUDRATE, 0, 1, 5, 1000, TRANSMITTER); 
 
-  app_layer(link_layer, argv);
+  //app_layer(link_layer, argv);
    
+  ll_open(link_layer);
+
+  char * str = "Teste link_layer";
+  strcpy(link_layer->dataPacket,str);
+  ll_write(link_layer, strlen(str));
+
+  ll_close(link_layer);
+
   ll_end(link_layer);
 
   return 0;
