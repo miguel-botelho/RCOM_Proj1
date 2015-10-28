@@ -1,29 +1,31 @@
 #include "link_layer.h"
-#include "utils.h"
+
+
 #include "state.h"
+
 #include "alarm.h"
 #include "bstuffing.h"
 
 #include <unistd.h>
 #include <stdio.h>
 
-static s = 0;
+static int s = 0;
 
-void ll_open(int flag, LinkLayer_t link_layer) {
+void ll_open(int flag, LinkLayer *link_layer) {
     if (flag == RECEIVER)
-	ll_open_receiver(link_layer->fd);
+	ll_open_receiver(link_layer);
     else if (flag == TRANSMITTER)
-	ll_open_transmitter(link_layer->fd);
+	ll_open_transmitter(link_layer);
 }
 
-void ll_close(int flag, LinkLayer_t link_layer) {
+void ll_close(int flag, LinkLayer *link_layer) {
     if (flag == RECEIVER)
-	ll_close_receiver(link_layer->fd);
+	ll_close_receiver(link_layer);
     else if (flag == TRANSMITTER)
-	ll_close_transmitter(link_layer->fd);
+	ll_close_transmitter(link_layer);
 }
 
-void ll_open_receiver(LinkLayer_t link_layer) {
+void ll_open_receiver(LinkLayer *link_layer) {
     char SET[5];
     char UA[5];
     
@@ -42,7 +44,7 @@ void ll_open_receiver(LinkLayer_t link_layer) {
     sleep(1);
 }
 
-void ll_open_transmitter(LinkLayer_t link_layer) {
+void ll_open_transmitter(LinkLayer *link_layer) {
 	int tries = getTries();
 	char UA[5];
 	char SET[5];
@@ -79,7 +81,7 @@ void ll_open_transmitter(LinkLayer_t link_layer) {
 	sleep(1);
 }
 
-void ll_close_receiver(LinkLayer_t link_layer) {
+void ll_close_receiver(LinkLayer *link_layer) {
  
     char DISC[MAX_FRAME_SIZE];
     char UA[5];
@@ -92,14 +94,14 @@ void ll_close_receiver(LinkLayer_t link_layer) {
     DISC_send[4] = F;
     
     int diskSize = 0;
-    int dataPacket[MAX_FRAME_SIZE];
+    char dataPacket[MAX_FRAME_SIZE]; // querias por int aqui? ok...
 
     do {
       setStopDISC(FALSE);
       diskSize = receive_FRAME(link_layer->fd, DISC);
-      int result = check_I(DISK, diskSize, dataPacket, s);
+      int result = check_I(dataPacket, s, DISC, diskSize, link_layer);
       if(result == RE_SEND_RR){
-      	send_RR(s);
+      	send_RR(link_layer->fd,s);
       }
     }while(check_DISC(DISC));
     
@@ -133,7 +135,7 @@ void ll_close_receiver(LinkLayer_t link_layer) {
 	}
 }
 
-void ll_close_transmitter(LinkLayer_t link_layer) {
+void ll_close_transmitter(LinkLayer *link_layer) {
   
     char DISC[5];
     char DISC_rec[5];
@@ -184,23 +186,23 @@ void ll_close_transmitter(LinkLayer_t link_layer) {
 	send_UA(link_layer->fd, UA);
 }
 
-int ll_write(linkLayer_t link_layer, char * data_packet, int size) {
+int ll_write(LinkLayer *link_layer, char * data_packet, int size) {
 
 	char frameAdder[3 + 1 + size];
 
 	int current_s = s;
 
 	char C = 0;
-	C = C|(S << 5);
+	C = C|(s << 5);
 	frameAdder[0] = A;
 	frameAdder[1] = C;
 	frameAdder[2] = frameAdder[1] ^ frameAdder[2];
 
-	int i = 1;
+	int i;
 	frameAdder[3] = data_packet[0];
 
 	char bcc_2 = frameAdder[3];
-	for (i; i < size + 3; i++) {
+	for (i = 1; i < size + 3; i++) {
 		frameAdder[i+3]=data_packet[i];
 		bcc_2^=data_packet[i];
 	}
@@ -245,30 +247,30 @@ int ll_write(linkLayer_t link_layer, char * data_packet, int size) {
 	return frameSize;
 }
 
-int ll_read(linkLayer_t link_layer, char *dataPacket) {
+int ll_read(LinkLayer *link_layer, char *dataPacket) {
 	int dataPacketSize = 0;
 	int validated = FALSE;
-	while(!validated){
-//		int maxFrameSize = link_layer->maxPacketSize * 2 + (3 + 1) * 2 + 2; // 3 + 1 = A, C, BCC1, BCC2 * 2 devido ao stuffing. 
-															  	  // + 2 = 2 flags (inicial e final)
+	char currC;
+	char UA[5];
 
+
+	while(!validated)
+	{
 		char frame[MAX_FRAME_SIZE];
 
-		STOP_FRAME = FALSE;
-		int frameSize = receive_FRAME(link_layer->fd, frame, maxFrameSize);
+		setStopFRAME(FALSE);
+		int frameSize = receive_FRAME(link_layer->fd, frame);
 
-
-		dataPacketSize = check_I(char * stuffedPacket, int stuffedPacketSize, char * dataPacket, int s);
+		dataPacketSize = check_I(dataPacket, s, frame, frameSize, link_layer);
 
 		switch(dataPacketSize){
 			case FAILED:
 				break;
 			case RE_SEND_RR:
-				char currC = (s<<5);
-				send_RR(currC);
+				currC = (s<<5);
+				send_RR(link_layer->fd,currC); //queres enviar que trama? WTF
 				break;
 			case RE_SEND_SET:
-				char UA[5];
 			    UA[0] = F;
 			    UA[1] = A;
 			    UA[2] = C_UA;
@@ -284,7 +286,7 @@ int ll_read(linkLayer_t link_layer, char *dataPacket) {
 
 	}
 
-		send_RR(s ^ 0x1);
+		send_RR(link_layer->fd,(s ^ 0x1));
 		s ^= 0x01;
 
 		return dataPacketSize;

@@ -10,22 +10,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
-#include "alarm.h"
-#include "state.h"
-#include "link_layer.h"
 #include "utils.h"
+#include "alarm.h"
+#include "link_layer.h"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     int fd;
     struct termios oldtio,newtio;
+    LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
 	(void) signal(SIGALRM, atende);
     
     if ( (argc < 2) || 
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
-  	      (strcmp("/dev/ttyS4", argv[1])!=0) )) {
+  	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
+  	      (strcmp("/dev/ttyS4", argv[1])!=0))) {
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
@@ -77,12 +75,23 @@ int main(int argc, char** argv)
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
     o indicado no guião 
   */
-  
-      ll_open(TRANSMITTER, fd);
+  	
+  	char* port = "kek";
 
-      setTries(1);
-      
-      ll_close(TRANSMITTER, fd);
+    link_layer->fd = fd;
+    link_layer->baudRate = BAUDRATE;
+    link_layer->port = port;
+    link_layer->sequenceNumber = 0;
+    link_layer->timeout = 1;
+    link_layer->maxTries = 5;
+
+	ll_open(TRANSMITTER, link_layer);
+
+	setTries(1);
+	  
+	ll_close(TRANSMITTER, link_layer);
+
+
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
@@ -95,5 +104,3 @@ int main(int argc, char** argv)
     close(fd);
     return 0;
 }
-
-
