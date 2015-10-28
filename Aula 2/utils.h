@@ -12,9 +12,13 @@
 #define SUBS 0x20
 
 #define F 0x7E
+#define FLAG 0x7E
 #define A 0x03
 #define C_SET 0x07
-#define BCC (A^C_SET)
+#define BCC_SET (A^C_SET)
+#define BCC_UA (A^C_UA)
+#define BCC_DISC (A^C_DISC)
+#define A_RECEPTOR 0x01
 
 #define START 0
 #define FLAG_RCV 1
@@ -22,6 +26,8 @@
 #define C_RCV 3
 #define BCC_OK 4
 #define STOP_ST 5
+#define ESC 0x7D
+#define SUBS 0x20	
 
 #define ATTEMPTS 4
 #define TIME_OUT 3
@@ -29,5 +35,13 @@
 #define C_UA 0x03
 
 #define C_DISC 0x0B
+
+#define RECEIVER 0
+#define TRANSMITTER 1
+
+#define FAILED -1
+#define RE_SEND_RR -2
+#define RE_SEND_SET -3
+
 
 #endif /* UTILS */

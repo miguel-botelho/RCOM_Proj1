@@ -1,6 +1,6 @@
 #include "alarm.h"
 
-static int flag = 1;
+static int flag = -1;
 static int tries = 1;
 
 void atende()  {
@@ -19,4 +19,8 @@ int getTries() {
 
 void setFlag(int f) {
   flag = f;
+}
+
+void setTries(int t) {
+  tries = t;
 }

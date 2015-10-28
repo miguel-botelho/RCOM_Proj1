@@ -5,13 +5,22 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <signal.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
+#include "alarm.h"
+#include "link_layer.h"
 #include "utils.h"
+#include "app_layer.h"
 
-int main(int argc, char** argv)
-{
-    int fd,c, res;
+int main(int argc, char** argv) {
+    
+    int fd;
     struct termios oldtio,newtio;
+	  (void) signal(SIGALRM, atende);
+    LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -21,10 +30,10 @@ int main(int argc, char** argv)
     }
 
 
-  /*
-    Open serial port device for reading and writing and not as controlling tty
-    because we don't want to get killed if linenoise sends CTRL-C.
-  */
+    /*
+      Open serial port device for reading and writing and not as controlling tty
+      because we don't want to get killed if linenoise sends CTRL-C.
+    */
   
     
     fd = open(argv[1], O_RDWR | O_NOCTTY );
@@ -48,12 +57,10 @@ int main(int argc, char** argv)
 
 
 
-  /* 
-    VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) próximo(s) caracter(es)
-  */
-
-
+    /* 
+      VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
+      leitura do(s) próximo(s) caracter(es)
+    */
 
     tcflush(fd, TCIOFLUSH);
 
@@ -64,28 +71,22 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-  char SET[5];
-  char UA[5];
-  
-  UA[0] = F;
-  UA[1] = A;
-  UA[2] = C_UA;
-  UA[3] = A^C_UA;
-  UA[4] = F;
+    
+    char *port = "kek";
 
-  receive_SET(fd, SET);
-  
-  printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+    link_layer->fd = fd;
+    link_layer->baudRate = BAUDRATE;
+    link_layer->port = port;
+    link_layer->sequenceNumber = 0;
+    link_layer->timeout = 1;
+    link_layer->maxTries = 5;
+    link_layer->status = RECEIVER;
 
-  send_UA(fd, UA);
+    app_layer(link_layer, argv);
 
-    sleep(1);
-
-
-
-  /* 
-    O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
-  */
+    /* 
+      O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
+    */
 
 
 

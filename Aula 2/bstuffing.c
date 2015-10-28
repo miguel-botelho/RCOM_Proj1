@@ -20,11 +20,12 @@ int bytestuffding(char * dataPacket, int size, char * stuffedPacket){
 int bytedestuffing(char * stuffedPacket, int size, char * dataPacket){
 	int i;
 	int j;
-	for(i = 0, j = 0; j < size; i++; j++){
+	for(i = 0, j = 0; j < size; i++, j++){
 		if(stuffedPacket[j] == ESC){
 			j++;
 			dataPacket[i] = stuffedPacket[j]^SUBS;
 		}
 		dataPacket[i] = stuffedPacket[j];
 	}
+	return j;
 }
