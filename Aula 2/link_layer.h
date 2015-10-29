@@ -40,7 +40,7 @@ int ll_write(LinkLayer *link_layer, int size);
 
 int ll_read(LinkLayer *link_layer);
 
-void ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status);
+void ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status);
 
 void ll_end(LinkLayer * linkLayer);
 

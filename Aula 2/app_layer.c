@@ -9,22 +9,26 @@ void app_layer(LinkLayer *link_layer, char* file_name) {
 }
 
 void app_layer_receiver(LinkLayer *link_layer) {
-
+	fprintf(stderr, "Abrir Ligação\n");
 	ll_open(link_layer);
-
+	fprintf(stderr, "Ligação Estabelecida\n");
 	FileInfo file;
 	int bytesRead = al_readFile(link_layer, &file);
 
-	setTries(1);
+	fd = open(file->name, O_WRONLY | O_TRUNC	| O_CREAT, 0660);
+	write(fd, file->file, bytesRead);
+
+	setTries(LinkLayer->maxTries);
 
 	ll_close(link_layer);
 }
 
 int al_readFile(LinkLayer * link_layer, FileInfo * file){
-
-	do{
-		fprintf(stderr, "À espera de packet inicio\n");
-	}while(al_readInitControlPacket(link_layer, file));
+	fprintf(stderr, "À espera de packet inicio\n");
+	
+	while(!al_readInitControlPacket(link_layer, file)){
+		fprintf(stderr, "Continua à espera de packet inicio\n");
+	}
 
 	int received = FALSE;
 	int bytesRead = 0;
@@ -37,18 +41,39 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 			break;
 		}
 
-		readInformatioPacket(link_layer,file,packetSize);
+		int bytes = readInformationPacket(link_layer,file,packetSize,bytesRead);
 
+		if(bytes < 0)
+			fprintf(stderr, "Failed reading packet %d\n", file->sequenceNumber);
+		else
+			bytesRead += bytes;
+		(file->sequenceNumber)++;
 
 	}while(!received)
 
-	//verificar se o numero de bytes que leu corresponde ao que era suposto
+	fprintf(stderr, "Expected %d bytes. Received %d bytes!!\n", file->size,bytesRead);
 
 	return bytesRead;
 }
 
-int readInformatioPacket(LinkLayer * link_layer, FileInfo * file, int packetSize){
+int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSize, int bytesRead){
+	//remover o packet header
+	char * dataPacket = link_layer->dataPacket; 
+	if(dataPacket[0] != C_DATA)
+		return -1;
+
+	int seqNum = dataPacket[1];
+	int size = 256*dataPacket[2] + dataPacket[3];
+
+	if(size != packetSize -4)
+		return -1;
 	
+	if(seqNum != file->sequenceNumber)
+		return -1;
+
+	memcpy(file->file[bytesRead], dataPacket[4], size);
+
+	return size;
 }
 
 int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
@@ -71,6 +96,7 @@ int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
 	file->size = fileSize;
 	file->name = fileName;
 	file->file = malloc(fileSize);
+	file->sequenceNumber = 0;
 	return 1;
 }
 
