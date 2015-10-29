@@ -249,11 +249,11 @@ int ll_read(LinkLayer * link_layer) {
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
-		fprintf(stderr, "Comeca o receive_frame");
+		fprintf(stderr, "Comeca o receive_frame\n");
 		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
 		
 		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
-		fprintf(stderr, "Resultado check_I = %d", dataPacketSize);
+		fprintf(stderr, "Resultado check_I = %d\n", dataPacketSize);
 		switch(dataPacketSize){
 			case FAILED:
 				break;

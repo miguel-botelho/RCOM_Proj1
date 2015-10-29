@@ -472,9 +472,10 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 	int option = START;
 
 	while(!(STOP_FRAME)){
-		read(fd, &flag_ST, 1);
-		fprintf(stderr, "option %d, flag_ST %x\n",option, flag_ST);
-		sleep(1);
+		if(read(fd, &flag_ST, 1) <= 0)
+			fprintf(stderr,"Bazou\n");
+		fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
+
 		switch (option) {
 			case START:
 				data = 0;
@@ -502,6 +503,8 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 				if (data >= 5 && flag_ST == F){
 					FRAME[data] = flag_ST;
 					option = STOP_ST;
+					data++;
+					STOP_FRAME = TRUE;
 				}
 				else if (data > maxFrameSize){
 					option = START;
@@ -518,6 +521,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 			case STOP_ST:
 				data++;
 				STOP_FRAME = TRUE;
+				fprintf(stderr, "Vai sairn");
 				break;
 			default:
 				break;
@@ -548,18 +552,20 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	if(stuffedPacketSize < 6)
 		return FAILED;
 
-	char * stuffedPacket = frame + sizeof(*frame); //corrigir, warning
 	
+
+	char * stuffedPacket = frame + sizeof(*frame);
+	fprintf(stderr, "Fazer destuff\n");
 	//Fazer destuff ao packet
 	char framedPacket[stuffedPacketSize];
 	int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
 
-
+	fprintf(stderr, "Verifica A\n");
 	//Verificar o A
 	if(framedPacket[0] != A)
 		return FAILED;
 
-
+	fprintf(stderr, "Verifica C\n");
 	//Verificar o C
 	char currC = (s<<5);
 
@@ -570,11 +576,11 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 			return RE_SEND_SET;
 		return FAILED;	
 	}
-
+	fprintf(stderr, "Verifica BCC1  BCC1 %x  Espera %x\n", framedPacket[2], A ^ currC);
 	//Verificar BCC1
 	if(framedPacket[2] != (A ^ currC))			
 		return FAILED;
-	
+	fprintf(stderr, "Verifica BCC2\n");
 	//Verificar BCC2 e ao mesmo tempo passar para o array onde é suposto guardar o dataPacket
 	char bcc_2 = framedPacket[3];
 	dataPacket[0] = framedPacket[3];
