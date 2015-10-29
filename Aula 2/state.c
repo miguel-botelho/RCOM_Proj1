@@ -76,7 +76,7 @@ int send_RR(int fd, int r){
 	RR[4] = FLAG;
 
 	write(fd, RR, 5);
-	//printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
+	printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
 	return 0;
 }
 
@@ -87,7 +87,7 @@ void receive_UA(int fd, char *UA) {
 	char flag_ST;
 
 	while(!(STOP_UA)) {
-		fprintf(stderr, "flag %d\n", getFlag());	
+		//fprintf(stderr, "flag %d\n", getFlag());	
 		read(fd, &flag_ST, 1);
 		int flag = getFlag();
 		//fprintf(stderr, "option %d, flag_ST %x flag %d\n",option, flag_ST,flag);
@@ -337,7 +337,7 @@ int receive_RR(int fd, char *RR, int s) {
 	while(!(STOP_RR)){
 		
 		read(fd, &flag_ST, 1);
-		fprintf(stderr, "option %d flag_ST 0x%x flag %d r %d c_rr %x\n", option, flag_ST, getFlag(), r, c_rr);
+		//fprintf(stderr, "option %d flag_ST 0x%x flag %d r %d c_rr %x\n", option, flag_ST, getFlag(), r, c_rr);
 		int flag = getFlag();
 		if(flag && flag != -1){
 		    alarm(0);
@@ -420,7 +420,6 @@ int receive_I(int fd, char *I, int maxFrameSize) {
 
 	while(!(STOP_FRAME)){
 		read(fd, &flag_ST, 1);
-
 		switch (option) {
 			case START:
 				data = 0;
@@ -478,8 +477,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 	int option = START;
 
 	while(!(STOP_FRAME)){
-		if(read(fd, &flag_ST, 1) <= 0)
-			fprintf(stderr,"Bazou\n");
+		read(fd, &flag_ST, 1);
 		//fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
 
 		switch (option) {
@@ -527,7 +525,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 			case STOP_ST:
 				data++;
 				STOP_FRAME = TRUE;
-				fprintf(stderr, "Vai sair\n");
+				//fprintf(stderr, "Vai sair\n");
 				break;
 			default:
 				break;
@@ -564,6 +562,7 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	//Fazer destuff ao packet
 	char framedPacket[stuffedPacketSize];
 	int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
+	//fprintf(stderr, "framedPacketSize=%d, byte = %x\n",(unsigned char) framedPacketSize,(unsigned char) framedPacket[284]);
 
 	//Verificar o A
 	if(framedPacket[0] != A)
@@ -583,19 +582,22 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	if(framedPacket[2] != (A ^ currC))			
 		return FAILED;
 
+
 	//Verificar BCC2 e ao mesmo tempo passar para o array onde é suposto guardar o dataPacket
-	char bcc_2 = framedPacket[3];
-	dataPacket[0] = framedPacket[3];
-	int i;
+	int i = 3;
+	char bcc_2 = framedPacket[i];
+	dataPacket[i-3] = framedPacket[i];
+	//fprintf(stderr, "i = %d\n", i);
 	for(i = 4; i < framedPacketSize - 1; i++){
 		dataPacket[i-3] = framedPacket[i];
 		bcc_2 ^= framedPacket[i];
 	}
+	fprintf(stderr, "Verificar BCC2 bcc_2 %x, Esperado %x, i = %d\n", (unsigned char) bcc_2,(unsigned char)framedPacket[framedPacketSize - 1],i);
 	if(bcc_2 != framedPacket[framedPacketSize - 1] )
 		return FAILED;
 
-	
-	return framedPacketSize - 4;
+	fprintf(stderr, "Success, returning %d\n", framedPacketSize-4);
+	return framedPacketSize-4;
 }
 
 int check_DISC(char *DISC_rec) {

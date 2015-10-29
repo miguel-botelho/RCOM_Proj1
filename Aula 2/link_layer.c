@@ -183,19 +183,21 @@ int ll_write(LinkLayer *link_layer, int size) {
 
 	int i;
 	frameAdder[3] = data_packet[0];
-
+	//fprintf(stderr, "frameAdder[3] = %x\n",(unsigned char) frameAdder[3]);
 	char bcc_2 = frameAdder[3];
 	for (i = 1; i < size + 3; i++) {
 		frameAdder[i+3]=data_packet[i];
 		bcc_2^=data_packet[i];
 	}
 	frameAdder[size+3] = bcc_2;
-
-	char frame[(size + 4) * 2 + 1];
+	fprintf(stderr, "bcc_2 %x\n", (unsigned char) bcc_2);
+	char frame[(size + 4) * 2 + 2];
 	char * stuffedPacket = frame + sizeof(*frame);
 	int size_stuffed_packet = bytestuffing(frameAdder, size + 4, stuffedPacket);
-
+	//fprintf(stderr, "size_stuffed_packet=%d\n", (unsigned char)size_stuffed_packet);
 	int frameSize = size_stuffed_packet + 2;
+	fprintf(stderr, "bcc_2 stuffed %x\n",(unsigned char) stuffedPacket[size_stuffed_packet - 1]);
+
 
 	frame[0] = FLAG;
 	frame[frameSize - 1] = FLAG;
@@ -257,7 +259,7 @@ int ll_read(LinkLayer * link_layer) {
 				UA[1] = A;
 				UA[2] = C_UA;
 				UA[3] = A^C_UA;
-			        UA[4] = F;
+			       UA[4] = F;
 
 				send_UA(link_layer->fd,UA);
 				break;
@@ -265,7 +267,7 @@ int ll_read(LinkLayer * link_layer) {
 				validated = TRUE;
 		}
 	}
-
+	fprintf(stderr, "Vai enviar o RR com s = %d\n", s ^ 0x1);
 	send_RR(link_layer->fd,(s ^ 0x1));
 	s ^= 0x01;
 

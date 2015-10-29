@@ -37,7 +37,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 		fprintf(stderr, "Started reading packet %d\n",file->sequenceNumber);		
 		int packetSize = ll_read(link_layer);
 
-		if(al_checkEndCtrlPacket(link_layer,file, packetSize)){
+		if(al_checkEndCtrlPacket(link_layer,file, packetSize) > 0){
 			received = TRUE;
 			break;
 		}
@@ -104,14 +104,16 @@ int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
 }
 
 int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSize){
+	char * dataPacket = link_layer->dataPacket;
+	fprintf(stderr, "Ctrl check packet %d\n packetSize %d, dataPacket %d\n", file->sequenceNumber, packetSize, dataPacket[0]);
 	if(packetSize < 7)
 		return -1;
-	char * dataPacket = link_layer->dataPacket;
 	if(dataPacket[0] != C_END)
 		return -1;
 
 	int fieldLength=0;
 	int fileSize = readFileSize(&dataPacket[1], &fieldLength);
+	fprintf(stderr, "Packet %d fileSize %d\n", file->sequenceNumber,fileSize);
 	if(fileSize < 0)
 		return -1;
 
@@ -201,6 +203,7 @@ int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 	int sentBytes = 0;
 	int i = 0;
 	for(; i < numPackets; i ++){
+		fprintf(stderr, "Sending dataPacket i = %d\n", i);
 		int packetSize;
 		if((size - sentBytes) >= defautlPacketSize )
 			packetSize = defautlPacketSize;

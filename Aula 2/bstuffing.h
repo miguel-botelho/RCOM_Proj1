@@ -2,6 +2,7 @@
 #define ___BSTUFFING
 
 #include "utils.h"
+#include <stdio.h>
 
 /**
  * Applies byte stuffing to a given array of chars

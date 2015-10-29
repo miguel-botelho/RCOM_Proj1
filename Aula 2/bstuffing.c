@@ -6,6 +6,7 @@ int bytestuffing(char * dataPacket, int size, char * stuffedPacket){
 	for(i = 0, j = 0;i < size; i++, j++){
 		char data = dataPacket[i];
 		if(data == FLAG || data == ESC){
+			//fprintf(stderr, "Stuffing byte i=%d, j=%d\n",i,j);
 			stuffedPacket[j] = ESC;
 			j++;
 			stuffedPacket[j] = data^SUBS;
@@ -22,10 +23,11 @@ int bytedestuffing(char * stuffedPacket, int size, char * dataPacket){
 	int j;
 	for(i = 0, j = 0; j < size; i++, j++){
 		if(stuffedPacket[j] == ESC){
+			//fprintf(stderr, "destuffing byte i = %d, j = %d \n",i,j);
 			j++;
 			dataPacket[i] = stuffedPacket[j]^SUBS;
-		}
-		dataPacket[i] = stuffedPacket[j];
+		}else
+			dataPacket[i] = stuffedPacket[j];
 	}
 	return i;
 }
