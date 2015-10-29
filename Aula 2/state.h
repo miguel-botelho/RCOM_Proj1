@@ -27,6 +27,9 @@ void setStopSET(int st);
 int getStopDISC();
 void setStopDISC(int st);
 
+void setStopRR(int st);
+int getStopRR();
+
 void setStopFRAME(int st);
 int getStopFRAME();
 

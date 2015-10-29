@@ -76,7 +76,7 @@ int send_RR(int fd, int r){
 	RR[4] = FLAG;
 
 	write(fd, RR, 5);
-	
+	printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
 	return 0;
 }
 

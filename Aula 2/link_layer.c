@@ -33,7 +33,6 @@ void ll_open_receiver(LinkLayer *link_layer) {
 
     send_UA(link_layer->fd, UA);
 
-    sleep(1);
 }
 
 void ll_open_transmitter(LinkLayer *link_layer) {
@@ -211,15 +210,15 @@ int ll_write(LinkLayer *link_layer, int size) {
 		write(link_layer->fd, frame, frameSize); //enviar packet
 
 		alarm(3);
-		setFlag(1);
+		setFlag(0);
 
 		char answerRR[5];
-
-		char ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
-
+		setStopRR(FALSE);
+		int ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
+		printf("FLAGS READ FROM RR: %x, %x, %x, %x, %x\n\n", answerRR[0], answerRR[1], answerRR[2], answerRR[3], answerRR[4]);
 		tries = getTries();
-
-		if (ans == -1) {
+		fprintf(stderr, "%d\n", ans);
+		if (ans < 0) {
 			continue;
 		}
 		s = ans;
@@ -246,10 +245,11 @@ int ll_read(LinkLayer * link_layer) {
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
+		fprintf(stderr, "Comeca o receive_frame");
 		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
-
+		
 		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
-
+		fprintf(stderr, "Resultado check_I = %d", dataPacketSize);
 		switch(dataPacketSize){
 			case FAILED:
 				break;
@@ -284,7 +284,7 @@ int ll_read(LinkLayer * link_layer) {
 void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
     struct termios * oldtio = malloc(sizeof(struct termios));
     struct termios newtio;
-    fprintf(stderr, "oldtio allocado\n");   	
+
     newLinkLayer->port = port;
 	
 	int fd = open(port, O_RDWR | O_NOCTTY );
@@ -293,15 +293,15 @@ void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int s
 		exit (-1);
 	}
 
-    fprintf(stderr, "porta aberta\n");   	
+
 	if ( tcgetattr(fd,oldtio) == -1) { /* save current port settings */
       perror("tcgetattr");
       exit(-1);
     }
-    fprintf(stderr, "guardado oldtio\n");   	
-	//nao passou
+
+
     bzero(&newtio, sizeof(newtio));
-    fprintf(stderr, "10\n");    
+
     newtio.c_cflag = baudRate | CS8 | CLOCAL | CREAD;
     newtio.c_iflag = IGNPAR;
     newtio.c_oflag = 0;
@@ -319,12 +319,12 @@ void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int s
 
 
     tcflush(fd, TCIOFLUSH);
-    fprintf(stderr, "12\n");
+
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
       perror("tcsetattr");
       exit(-1);
     }
-    fprintf(stderr, "vai começar a copiar para o linklayer\n");
+
     newLinkLayer->fd = fd;
     newLinkLayer->baudRate = baudRate;
     newLinkLayer->port = port;

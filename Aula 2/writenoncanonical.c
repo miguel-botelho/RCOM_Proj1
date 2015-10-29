@@ -40,11 +40,12 @@ int main(int argc, char** argv) {
   //app_layer(link_layer, argv);
    
   ll_open(link_layer);
-
+  
   char * str = "Teste link_layer";
   strcpy(link_layer->dataPacket,str);
+  fprintf(stderr, "Começa a escrever\n");
   ll_write(link_layer, strlen(str));
-
+  fprintf(stderr, "Acabou de escrever\n");
   ll_close(link_layer);
 
   ll_end(link_layer);
