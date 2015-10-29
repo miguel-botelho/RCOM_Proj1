@@ -33,7 +33,7 @@ int send_SET(int fd, char *SET) {
 
 	res = write(fd, SET, 5);
 
-	printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+	//printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 	
 	return res;
 }
@@ -43,7 +43,7 @@ int send_UA(int fd, char *UA) {
   
   res = write(fd, UA, 5);
 
-  printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+  //printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
   return res;
 }
@@ -61,7 +61,7 @@ int send_DISC(int fd, char *DISC) {
   
   res = write(fd, DISC, 5);
 
-  printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+  //printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
 
   return res;  
 }
@@ -76,7 +76,7 @@ int send_RR(int fd, int r){
 	RR[4] = FLAG;
 
 	write(fd, RR, 5);
-	printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
+	//printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
 	return 0;
 }
 
@@ -90,7 +90,7 @@ void receive_UA(int fd, char *UA) {
 		fprintf(stderr, "flag %d\n", getFlag());	
 		read(fd, &flag_ST, 1);
 		int flag = getFlag();
-		fprintf(stderr, "option %d, flag_ST %x flag %d\n",option, flag_ST,flag);
+		//fprintf(stderr, "option %d, flag_ST %x flag %d\n",option, flag_ST,flag);
 		if(flag && flag != -1){
 		      alarm(0);
 		      setFlag(-1);
@@ -479,7 +479,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 	while(!(STOP_FRAME)){
 		if(read(fd, &flag_ST, 1) <= 0)
 			fprintf(stderr,"Bazou\n");
-		fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
+		//fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
 
 		switch (option) {
 			case START:
@@ -560,17 +560,14 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	
 
 	char * stuffedPacket = frame + sizeof(*frame);
-	fprintf(stderr, "Fazer destuff\n");
 	//Fazer destuff ao packet
 	char framedPacket[stuffedPacketSize];
 	int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
 
-	fprintf(stderr, "Verifica A\n");
 	//Verificar o A
 	if(framedPacket[0] != A)
 		return FAILED;
 
-	fprintf(stderr, "Verifica C\n");
 	//Verificar o C
 	char currC = (s<<5);
 
@@ -581,7 +578,6 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 			return RE_SEND_SET;
 		return FAILED;	
 	}
-	fprintf(stderr, "Verifica BCC1  BCC1 %x  Espera %x\n", framedPacket[2], A ^ currC);
 	//Verificar BCC1
 	if(framedPacket[2] != (A ^ currC))			
 		return FAILED;
@@ -594,7 +590,6 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 		dataPacket[i-3] = framedPacket[i];
 		bcc_2 ^= framedPacket[i];
 	}
-	fprintf(stderr, "Verifica BCC2 %x Espera %x \n", bcc_2, framedPacket[framedPacketSize -1]);
 	if(bcc_2 != framedPacket[framedPacketSize - 1] )
 		return FAILED;
 

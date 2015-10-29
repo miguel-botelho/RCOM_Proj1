@@ -17,7 +17,6 @@
 
 int main(int argc, char** argv) {
   LinkLayer *link_layer = malloc(sizeof(LinkLayer));
-  fprintf(stderr, "linklayer allocado\n");
 
   struct sigaction sa;
   sa.sa_flags = 0;
@@ -26,7 +25,6 @@ int main(int argc, char** argv) {
     perror("Error: cannot handle SIGALRM");
     return 0;
   }
-  fprintf(stderr, "signal handler\n");   
 
   if ( (argc < 2) || 
 	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
@@ -43,10 +41,8 @@ int main(int argc, char** argv) {
   
   char * str = "Teste link_layer";
   strcpy(link_layer->dataPacket,str);
-  fprintf(stderr, "Começa a escrever\n");
   if(ll_write(link_layer, strlen(str)) < 0)
 	exit(-1);
-  fprintf(stderr, "Acabou de escrever\n");
   ll_close(link_layer);
 
   ll_end(link_layer);

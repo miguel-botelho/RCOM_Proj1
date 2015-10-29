@@ -29,7 +29,7 @@ void ll_open_receiver(LinkLayer *link_layer) {
 
     receive_SET(link_layer->fd, SET);
     
-    printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+    //printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
     send_UA(link_layer->fd, UA);
 
@@ -58,7 +58,7 @@ void ll_open_transmitter(LinkLayer *link_layer) {
 		receive_UA(link_layer->fd, UA);
 		
 		if(!(check_UA(UA))){
-		    printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+		    //printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 		    tries=99;
 		}else{
 		    tries++;
@@ -93,7 +93,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     }while(check_DISC(DISC));
     
     
-    printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+    //printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
         
     int tries = getTries();	
     
@@ -107,7 +107,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
 		setStopUA(FALSE);	
 		receive_UA(link_layer->fd, UA);		
 		if(!(check_UA(UA))){
-			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+			//printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
 		}
 		else{
@@ -150,7 +150,7 @@ void ll_close_transmitter(LinkLayer *link_layer) {
 		
 		if(!(check_DISC(DISC_rec)))
 		{
-			printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
+			//printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
 			setTries(99);
 		}
 		else
@@ -207,17 +207,13 @@ int ll_write(LinkLayer *link_layer, int size) {
 
 		write(link_layer->fd, frame, frameSize); //enviar packet
 		int j=0;	
-		for(;j<frameSize; j++){
-			fprintf(stderr, "%x ",frame[j]);
-		}
-		fprintf(stderr, "\n");
 		alarm(3);
 		setFlag(0);
 
 		char answerRR[5];
 		setStopRR(FALSE);
 		int ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
-		printf("FLAGS READ FROM RR: %x, %x, %x, %x, %x\n\n", answerRR[0], answerRR[1], answerRR[2], answerRR[3], answerRR[4]);
+		//printf("FLAGS READ FROM RR: %x, %x, %x, %x, %x\n\n", answerRR[0], answerRR[1], answerRR[2], answerRR[3], answerRR[4]);
 		tries = getTries();
 		fprintf(stderr, "%d\n", ans);
 		if (ans < 0) {
@@ -247,11 +243,9 @@ int ll_read(LinkLayer * link_layer) {
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
-		fprintf(stderr, "Comeca o receive_frame\n");
 		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
 		
 		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
-		fprintf(stderr, "Resultado check_I = %d\n", dataPacketSize);
 		switch(dataPacketSize){
 			case FAILED:
 				break;
