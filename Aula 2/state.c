@@ -406,7 +406,7 @@ int receive_RR(int fd, char *RR, int s) {
 	return r;
 }
 
-int receive_I(int fd, char *I) {
+int receive_I(int fd, char *I, int maxFrameSize) {
 
 	char flag_ST;
 	int data = 0;
@@ -443,7 +443,7 @@ int receive_I(int fd, char *I) {
 					I[data] = flag_ST;
 					option = STOP_ST;
 				}
-				else if (data > MAX_FRAME_SIZE){
+				else if (data > maxFrameSize){
 					option = START;
 				}
 				else if (data < 6 && flag_ST == F){
@@ -466,7 +466,7 @@ int receive_I(int fd, char *I) {
 	return data;
 }
 
-int receive_FRAME(int fd, char *FRAME){
+int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 	char flag_ST;
 	int data = 0;
 	int option = START;
@@ -502,7 +502,7 @@ int receive_FRAME(int fd, char *FRAME){
 					FRAME[data] = flag_ST;
 					option = STOP_ST;
 				}
-				else if (data > MAX_FRAME_SIZE){
+				else if (data > maxFrameSize){
 					option = START;
 				}
 				else if (data < 5 && flag_ST == F){

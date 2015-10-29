@@ -12,7 +12,7 @@ void receive_UA(int fd, char *UA);
 void receive_DISC(int fd, char *DISC);
 int receive_RR(int fd, char *RR, int s);
 
-int receive_FRAME(int fd, char *FRAME);
+int receive_FRAME(int fd, char *FRAME, int maxFrameSize);
 
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);

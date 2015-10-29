@@ -9,10 +9,13 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <termios.h>
-
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <strings.h>
 
 typedef struct {
-	char port[20]; 						//Dispositivo /dev/ttySx, x = 0, 1
+	char * port; 						//Dispositivo /dev/ttySx, x = 0, 1
 	int fd;
 	int baudRate; 						//Velocidade de transmissão
 	unsigned int sequenceNumber;		//Número de sequência da trama: 0, 1

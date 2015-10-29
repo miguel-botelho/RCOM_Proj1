@@ -1,16 +1,4 @@
 #include "app_layer.h"
-#include "link_layer.h"
-#include "state.h"
-#include "alarm.h"
-#include "utils.h"
-
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <math.h>
-#include <string.h>
 
 
 void app_layer(LinkLayer *link_layer, char* file_name) {
@@ -42,20 +30,20 @@ char * al_readFile(LinkLayer * link_layer, char * file){
 	//verificar se o numero de bytes que leu corresponde ao que era suposto
 
 	//retornar apontador ficheiro
-
+	return 0;
 }
 
 void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
 
 	int file;
 	char * file_buffer;
-    struct stat * file_stat = mallo(sizeof(struct stat));
+    struct stat * file_stat = malloc(sizeof(struct stat));
 
     file = open(file_name, O_RDONLY);
 
     fstat(file, file_stat);
 
-    file_buffer = malloc(file_stat);
+    file_buffer = malloc(file_stat->st_size);
 
     read(file, &file_buffer, file_stat->st_size);
 
@@ -65,19 +53,19 @@ void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
 
 	char controlPacket[3 + 4 + 3 + strlen(file_name) + 1];
 
-	controlPacketStart[0] = C_START;
+	controlPacket[0] = C_START;
 	controlPacket_size(file_stat, controlPacket);
 	controlPacket_name(file_stat, &controlPacket[3 + controlPacket[2]], file_name);
 	memcpy(link_layer->dataPacket, controlPacket, sizeof(controlPacket));
-	llwrite(link_layer,sizeof(controlPacket));
+	ll_write(link_layer,sizeof(controlPacket));
 
 
 	int sentBytes = al_sendFile(link_layer, file_buffer, file_stat->st_size);
-
+	printf("Sent %d bytes from %d\n", sentBytes,(int) file_stat->st_size);
 
 	controlPacket[0] = C_END;
 	memcpy(link_layer->dataPacket, controlPacket, sizeof(controlPacket));
-	llwrite(link_layer,sizeof(controlPacket));
+	ll_write(link_layer,sizeof(controlPacket));
 
 
 	setTries(1);
@@ -100,7 +88,7 @@ int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 			packetSize = defautlPacketSize;
 		else
 			packetSize = size - defautlPacketSize;
-		if(al_sendPacket(link_layer, file_buffer[i*packetSize], packetSize) < 0, i){
+		if(al_sendPacket(link_layer, &file_buffer[i*packetSize], packetSize,i) < 0){
 			fprintf(stderr, "Error sending dataPacket i=%d\n",i );	
 			exit(-1);
 		}
@@ -112,10 +100,10 @@ int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 }
 
 int getPacketSize(int maxFrameSize){
-	return (maxFrameSize - NUMBER_FLAGS)/2 - FRAME_HEADER_SIZE - PACKET_HEADER_SIZE);
+	return (maxFrameSize - NUMBER_FLAGS)/2 - FRAME_HEADER_SIZE - PACKET_HEADER_SIZE;
 }
 
-int al_sendPacket(LinkLayer * link_layer, char * packet, int size,i){
+int al_sendPacket(LinkLayer * link_layer, char * packet, int size,int i){
 	link_layer->dataPacket[0] = C_DATA;
 	link_layer->dataPacket[1] = i;
 	link_layer->dataPacket[2] = size >> 4;
@@ -123,22 +111,22 @@ int al_sendPacket(LinkLayer * link_layer, char * packet, int size,i){
 
 	memcpy(&(link_layer->dataPacket[4]), packet, size);
 
-	return llwrite(link_layer, size + PACKET_HEADER_SIZE);
+	return ll_write(link_layer, size + PACKET_HEADER_SIZE);
 }
 
 void controlPacket_size(struct stat * file_stat, char * controlPacket){
-	controlPacketStart[1] = 0; //tamanho ficheiro
-	controlPacketStart[2] = 4; // 4 bytes é o máximo
+	controlPacket[1] = 0; //tamanho ficheiro
+	controlPacket[2] = 4; // 4 bytes é o máximo
 	int i = 0;
-	for(;i < controlPacketStart[2]; i++){
-		controlPacketStart[i+3] = 0xFF & (file_stat->st_size >> (8 * i));
+	for(;i < controlPacket[2]; i++){
+		controlPacket[i+3] = 0xFF & (file_stat->st_size >> (8 * i));
 	}
 }
 
 void controlPacket_name(struct stat * file_stat, char * controlPacket, char * name){
-	controlPacketStart[0] = 1;
-	controlPacketStart[1] = 1; 					//nome do ficheiro
-	controlPacketStart[2] = strlen(name) + 1; 	//+ 1 porque /0
+	controlPacket[0] = 1;
+	controlPacket[1] = 1; 					//nome do ficheiro
+	controlPacket[2] = strlen(name) + 1; 	//+ 1 porque /0
 
-	memcpy(&controlPacketStart[3], name, strlen(name) +1);
+	memcpy(&controlPacket[3], name, strlen(name) +1);
 }

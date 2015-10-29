@@ -86,7 +86,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
 
     do {
       setStopDISC(FALSE);
-      diskSize = receive_FRAME(link_layer->fd, DISC);
+      diskSize = receive_FRAME(link_layer->fd, DISC, link_layer->maxFrameSize);
       int result = check_I(dataPacket, s, DISC, diskSize);
       if(result == RE_SEND_RR){
       	send_RR(link_layer->fd,s);
@@ -246,9 +246,9 @@ int ll_read(LinkLayer * link_layer) {
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
-		int frameSize = receive_FRAME(link_layer->fd, frame);
+		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
 
-		dataPacketSize = check_I(dataPacket, s, frame, frameSize, link_layer);
+		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
 
 		switch(dataPacketSize){
 			case FAILED:
@@ -281,11 +281,11 @@ int ll_read(LinkLayer * link_layer) {
 
 
 
-int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
-    struct termios * oldtio = malloc(sizeof(struct termios));
-    struct termios oldtio, newtio;
+void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
+    struct termios * oldtio = (struct termios *) malloc(sizeof(struct termios));
+    struct termios newtio;
 	
-	memcpy(newLinkLayer->port, port, sizeof(port));
+	memcpy(newLinkLayer->port, port, 20);
 
 	int fd = open(port, O_RDWR | O_NOCTTY );
 	if (fd < 0) {
@@ -333,7 +333,7 @@ int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int 
     newLinkLayer->status = status;
     newLinkLayer->oldtio = oldtio;
 
-    newLinkLayer->dataPacket = mmalloc( (maxFrameSize - 2)/2 - (3 + 1));
+    newLinkLayer->dataPacket = malloc( (maxFrameSize - 2)/2 - (3 + 1));
 
     printf("New termios structure set\n");
 
@@ -345,5 +345,5 @@ void ll_end(LinkLayer * linkLayer){
       perror("tcsetattr");
       exit(-1);
     }
-   close(fd);
+   close(linkLayer->fd);
 }
