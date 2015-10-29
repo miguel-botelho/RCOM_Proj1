@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 1000, TRANSMITTER); 
+  ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 500, TRANSMITTER); 
 
   app_layer(link_layer, argv[2]);
 
