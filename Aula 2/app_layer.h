@@ -31,7 +31,7 @@
 typedef struct {
 	int size;
 	char * name;
-	char * file;
+	int fd;
 	int sequenceNumber;
 }FileInfo;
  

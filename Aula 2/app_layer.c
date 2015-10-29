@@ -12,18 +12,14 @@ void app_layer_receiver(LinkLayer *link_layer) {
 	fprintf(stderr, "Abrir Ligação\n");
 	ll_open(link_layer);
 	fprintf(stderr, "Ligação Estabelecida\n");
-	FileInfo file;
-	int bytesRead = al_readFile(link_layer, &file);
-
-	char * folder = "results/";
-	char * new_str ;
-	new_str = malloc(strlen(folder)+strlen(file.name)+1);
-	new_str[0] = '\0';   
-	strcat(new_str,folder);
-	strcat(new_str,file.name);
+	FileInfo file;	
 	
-	int fd = open("file.gif", O_WRONLY | O_TRUNC | O_CREAT, 0777);
-	write(fd, file.file, bytesRead);
+	
+
+	int bytesRead = al_readFile(link_layer, &file);
+	
+	
+	//write(fd, file.file, bytesRead);
 
 	setTries(0);
 	if(ll_close(link_layer) < 0)
@@ -84,7 +80,7 @@ int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 	if(seqNum != file->sequenceNumber)
 		return -1;
 
-	memcpy(&(file->file[bytesRead]), &dataPacket[4], size);
+	write(file->fd, &dataPacket[4], size);
 
 	return size;
 }
@@ -108,7 +104,13 @@ int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
 
 	file->size = fileSize;
 	file->name = fileName;
-	file->file = malloc(fileSize);
+	
+	fprintf(stderr, "name of file:%s\n", file->name);
+	fprintf(stderr, "size of file:%d\n", fileSize);
+	
+
+	int fd = open("pinguim.gif", O_WRONLY | O_TRUNC | O_CREAT, 0660);
+	file->fd = fd;
 	file->sequenceNumber = 0;
 	return 1;
 }
@@ -142,7 +144,7 @@ int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 int readFileSize(char * dataPacket, int * fieldLength){
 	if(dataPacket[0] != F_SIZE)
 		return -1;
-	*fieldLength = dataPacket[1];
+	*fieldLength = (unsigned int) dataPacket[1];
 	int fileSize=*((uint32_t *) &dataPacket[2]);
 	//int i = 0;
 
@@ -156,9 +158,10 @@ char * readFileName(char * dataPacket, int * fieldLength){
 	if(dataPacket[0] != F_NAME)
 		return NULL;
 
-	*fieldLength = dataPacket[1];
+	*fieldLength = (unsigned int) dataPacket[1];
 	char * fileName = malloc(*fieldLength);
 	memcpy(fileName, &dataPacket[2], *fieldLength);
+	fprintf(stderr, "size:%d\n name: %s\n", *fieldLength, fileName); 
 	return fileName;
 }
 
@@ -248,7 +251,7 @@ int al_sendPacket(LinkLayer * link_layer, char * packet, int size,int i){
 }
 
 void controlPacket_size(struct stat * file_stat, char * controlPacket){
-	controlPacket[1] = 0; //tamanho ficheiro
+	controlPacket[1] = F_SIZE; //tamanho ficheiro
 	controlPacket[2] = 4; // 4 bytes é o máximo
 	int i = 0;
 	for(;i < controlPacket[2]; i++){
@@ -257,9 +260,8 @@ void controlPacket_size(struct stat * file_stat, char * controlPacket){
 }
 
 void controlPacket_name(struct stat * file_stat, char * controlPacket, char * name){
-	controlPacket[0] = 1;
-	controlPacket[1] = 1; 					//nome do ficheiro
-	controlPacket[2] = strlen(name) + 1; 	//+ 1 porque /0
+	controlPacket[0] = F_NAME; //nome do ficheiro
+	controlPacket[1] = strlen(name) + 1; 	//+ 1 porque /0
 
-	memcpy(&controlPacket[3], name, strlen(name) +1);
+	memcpy(&controlPacket[2], name, strlen(name) +1);
 }
