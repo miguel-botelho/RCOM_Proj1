@@ -72,7 +72,7 @@ int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 		return -1;
 
 	int seqNum = dataPacket[1];
-	int size = ((unsigned int)dataPacket[2]<<4) +((unsigned int) dataPacket[3]); // FOI AQUI
+	int size = ((unsigned int)dataPacket[2]<<8) +((unsigned int) dataPacket[3]); // FOI AQUI
 
 	if(size != packetSize -4)
 		return -1;
@@ -238,10 +238,12 @@ int getPacketSize(int maxFrameSize){
 int al_sendPacket(LinkLayer * link_layer, char * packet, int size,int i){
 	link_layer->dataPacket[0] = C_DATA;
 	link_layer->dataPacket[1] = i;
-	link_layer->dataPacket[2] = (size >> 4); //aqui
-	link_layer->dataPacket[3] = size % 16; // aqui
+	link_layer->dataPacket[2] = (size >> 8) & 0xFF; //aqui
+	link_layer->dataPacket[3] = size & 0xFF ; // aqui
 
 	memcpy(&(link_layer->dataPacket[4]), packet, size);
+
+	fprintf(stderr, "%s\n", packet);
 
 	return ll_write(link_layer, size + PACKET_HEADER_SIZE);
 }
