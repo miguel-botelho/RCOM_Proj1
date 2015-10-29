@@ -244,6 +244,7 @@ int ll_read(LinkLayer * link_layer) {
 		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
 		
 		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
+		fprintf(stderr, "check_I %d\n", dataPacketSize);
 		switch(dataPacketSize){
 			case FAILED:
 				break;
