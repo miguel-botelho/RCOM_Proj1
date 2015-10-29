@@ -34,6 +34,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 	int bytesRead = 0;
 	fprintf(stderr, "A recever dados\n");
 	do{
+		fprintf(stderr, "Started reading packet %d"\n,file->sequenceNumber);		
 		int packetSize = ll_read(link_layer);
 
 		if(al_checkEndCtrlPacket(link_layer,file, packetSize)){
@@ -45,9 +46,10 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 
 		if(bytes < 0)
 			fprintf(stderr, "Failed reading packet %d\n", file->sequenceNumber);
-		else
+		else{
+			fprintf(stderr, "Success reading packet %d\n", file->sequenceNumber);
 			bytesRead += bytes;
-		(file->sequenceNumber)++;
+		}(file->sequenceNumber)++;
 
 	}while(!received);
 
@@ -57,7 +59,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 }
 
 int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSize, int bytesRead){
-	//remover o packet header
+
 	char * dataPacket = link_layer->dataPacket; 
 	if(dataPacket[0] != C_DATA)
 		return -1;
@@ -149,45 +151,46 @@ char * readFileName(char * dataPacket, int * fieldLength){
 
 void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
 
-	int file;
-	char * file_buffer;
+    int file;
+    char * file_buffer;
     struct stat * file_stat = malloc(sizeof(struct stat));
-
+    fprintf(stderr, "Abrir ficheiro %s\n",file_name);
     file = open(file_name, O_RDONLY);
 
     fstat(file, file_stat);
 
     file_buffer = malloc(file_stat->st_size);
 
-    read(file, &file_buffer, file_stat->st_size);
+    read(file, file_buffer, file_stat->st_size);
 
     printf("tamanho!: %lld\n", (long long)file_stat->st_size);
-
+	fprintf(stderr, "Abrir ligação\n");
 	ll_open(link_layer);
-
+	fprintf(stderr, "Ligação estabelecida\n");
 	char controlPacket[3 + 4 + 3 + strlen(file_name) + 1];
-
+	
+	fprintf(stderr, "A enviar packet controlo 1\n");
 	controlPacket[0] = C_START;
 	controlPacket_size(file_stat, controlPacket);
 	controlPacket_name(file_stat, &controlPacket[3 + controlPacket[2]], file_name);
 	memcpy(link_layer->dataPacket, controlPacket, sizeof(controlPacket));
 	ll_write(link_layer,sizeof(controlPacket));
-
-
+	
+	fprintf(stderr, "A começar envio de dados\n");
 	int sentBytes = al_sendFile(link_layer, file_buffer, file_stat->st_size);
 	printf("Sent %d bytes from %d\n", sentBytes,(int) file_stat->st_size);
-
+	
+	fprintf(stderr, "A enviar pacote controlo 2\n");
 	controlPacket[0] = C_END;
 	memcpy(link_layer->dataPacket, controlPacket, sizeof(controlPacket));
 	ll_write(link_layer,sizeof(controlPacket));
 
 
 	setTries(1);
-	  
+	fprintf(stderr, "A terminar ligação\n");
 	ll_close(link_layer);
+	fprintf(stderr, "Terminada ligação\n");
 
-	double cenas = ceil(1.2);
-	printf("t: %f\n", cenas);
 }
 
 int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
