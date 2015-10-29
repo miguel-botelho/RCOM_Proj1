@@ -31,7 +31,7 @@ int send_SET(int fd, char *SET) {
 		setFlag(0);
 	}
 
-	res = write(fd, SET, sizeof(SET));
+	res = write(fd, SET, 5);
 
 	printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 	
@@ -41,7 +41,7 @@ int send_SET(int fd, char *SET) {
 int send_UA(int fd, char *UA) {
   int res;
   
-  res = write(fd, UA, sizeof(UA));
+  res = write(fd, UA, 5);
 
   printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
@@ -307,6 +307,7 @@ void receive_DISC(int fd, char *DISC_rec) {
 		case BCC_OK:
 			if (flag_ST == F){
 					option = STOP_ST;
+					STOP_DISC = TRUE;
 					DISC_rec[4] = flag_ST;
 				}
 			else
@@ -440,7 +441,7 @@ int receive_I(int fd, char *I, int maxFrameSize) {
 				}
 				break;
 			case A_RCV:
-				if (data >= 6 && flag_ST == F){
+				if (data >= 5 && flag_ST == F){
 					I[data] = flag_ST;
 					option = STOP_ST;
 				}
@@ -501,7 +502,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 				}
 				break;
 			case A_RCV:
-				if (data >= 5 && flag_ST == F){
+				if (data >= 4 && flag_ST == F){
 					FRAME[data] = flag_ST;
 					option = STOP_ST;
 					data++;
@@ -510,7 +511,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 				else if (data > maxFrameSize){
 					option = START;
 				}
-				else if (data < 5 && flag_ST == F){
+				else if (data < 4 && flag_ST == F){
 					option = A_RCV;
 				}
 				else{
@@ -522,7 +523,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 			case STOP_ST:
 				data++;
 				STOP_FRAME = TRUE;
-				fprintf(stderr, "Vai sairn");
+				fprintf(stderr, "Vai sair\n");
 				break;
 			default:
 				break;

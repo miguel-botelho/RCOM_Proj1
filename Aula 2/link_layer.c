@@ -84,7 +84,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     char dataPacket[link_layer->maxFrameSize]; // querias por int aqui? ok...
 
     do {
-      setStopDISC(FALSE);
+      setStopFRAME(FALSE);
       diskSize = receive_FRAME(link_layer->fd, DISC, link_layer->maxFrameSize);
       int result = check_I(dataPacket, s, DISC, diskSize);
       if(result == RE_SEND_RR){
@@ -107,7 +107,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
 		setStopUA(FALSE);	
 		
 		receive_UA(link_layer->fd, UA);		
-		
+		printf("FLAGS INSIDE UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 		if(!(check_UA(UA))){
 			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
