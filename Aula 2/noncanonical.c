@@ -39,6 +39,8 @@ int main(int argc, char** argv) {
 
   app_layer(link_layer, 0);
 
+  fprintf(stderr, "Saiu da app_layer. Encerrar a link_layer\n");
+
   ll_end(link_layer);
 
 	return 0;

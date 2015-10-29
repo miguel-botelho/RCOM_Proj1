@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if ( (argc < 2) || 
+  if ( (argc < 3) || 
 	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
 	      (strcmp("/dev/ttyS4", argv[1])!=0))) {
     printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
   ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 1000, TRANSMITTER); 
 
-  app_layer(link_layer, "pinguim.gif");
+  app_layer(link_layer, argv[2]);
 
   ll_end(link_layer);
 
