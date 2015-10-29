@@ -25,6 +25,13 @@
 #define NUMBER_FLAGS 2
 #define FRAME_HEADER_SIZE 3+1
 #define PACKET_HEADER_SIZE 4
+
+
+typedef struct {
+	int size;
+	char * name;
+	char * file;
+}FileInfo;
  
 
 void app_layer(LinkLayer *link_layer, char* file_name);
@@ -39,6 +46,9 @@ int al_sendPacket(LinkLayer * link_layer, char * packet, int size, int i);
 int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size);
 
 char * al_readFile(LinkLayer * link_layer, char * file);
+int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file);
+int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSize);
+int readFileSize(char * dataPacket, int * fieldLength);
 
 int getPacketSize(int maxFrameSize);
 

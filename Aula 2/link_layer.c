@@ -238,8 +238,7 @@ int ll_read(LinkLayer * link_layer) {
 	char UA[5];
 
 
-	while(!validated)
-	{
+	while(!validated){
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
@@ -265,19 +264,17 @@ int ll_read(LinkLayer * link_layer) {
 			default:
 				validated = TRUE;
 		}
-
-
 	}
 
-		send_RR(link_layer->fd,(s ^ 0x1));
-		s ^= 0x01;
+	send_RR(link_layer->fd,(s ^ 0x1));
+	s ^= 0x01;
 
-		return dataPacketSize;
+	return dataPacketSize;
 }
 
 
 
-void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
+void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
     struct termios * oldtio = malloc(sizeof(struct termios));
     struct termios newtio;
 

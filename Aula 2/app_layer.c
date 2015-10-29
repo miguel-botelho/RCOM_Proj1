@@ -12,25 +12,113 @@ void app_layer_receiver(LinkLayer *link_layer) {
 
 	ll_open(link_layer);
 
-	//ficar a ler
+	FileInfo file;
+	int bytesRead = al_readFile(link_layer, &file);
 
 	setTries(1);
 
 	ll_close(link_layer);
 }
 
-char * al_readFile(LinkLayer * link_layer, char * file){
+int al_readFile(LinkLayer * link_layer, FileInfo * file){
 
-	//ler pacote inicial
+	do{
+		fprintf(stderr, "À espera de packet inicio\n");
+	}while(al_readInitControlPacket(link_layer, file));
 
-	//reservar memória para ficheiro
+	int received = FALSE;
+	int bytesRead = 0;
+	fprintf(stderr, "A recever dados\n", );
+	do{
+		int packetSize = ll_read(link_layer);
 
-	//ler packets até receber um pacote final
+		if(al_checkEndCtrlPacket(link_layer,file, packetSize)){
+			received = TRUE;
+			break;
+		}
+
+		readInformatioPacket(link_layer,file,packetSize);
+
+
+	}while(!received)
 
 	//verificar se o numero de bytes que leu corresponde ao que era suposto
 
-	//retornar apontador ficheiro
-	return 0;
+	return bytesRead;
+}
+
+int readInformatioPacket(LinkLayer * link_layer, FileInfo * file, int packetSize){
+	
+}
+
+int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
+	int dataPacketSize = ll_read(link_layer);
+	if(dataPacketSize < 7)
+		return -1;
+	char * dataPacket = link_layer->dataPacket;
+	if(dataPacket[0] != C_START)
+		return -1;
+
+	int fieldLength=0;
+	int fileSize = readFileSize(&dataPacket[1], &fieldLength)
+	if(fileSize < 0)
+		return -1;
+
+	char * fileName = readFileName(&dataPacket[1+2+fieldLength], &fieldLength);
+	if(fileName == -1)
+		return -1;
+
+	file->size = fileSize;
+	file->name = fileName;
+	file->file = malloc(fileSize);
+	return 1;
+}
+
+int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSize){
+	if(packetSize < 7)
+		return -1;
+	char * dataPacket = link_layer->dataPacket;
+	if(dataPacket[0] != C_END)
+		return -1;
+
+	int fieldLength=0;
+	int fileSize = readFileSize(&dataPacket[1], &fieldLength)
+	if(fileSize < 0)
+		return -1;
+
+	char * fileName = readFileName(&dataPacket[1+2+fieldLength], &fieldLength);
+	if(fileName == -1)
+		return -1;
+
+	if(file->size != fileSize)
+		return -1;
+
+	if(strcmp(file->name,fileName) != 0)
+		return -1;
+	return 1;
+}
+
+int readFileSize(char * dataPacket, int * fieldLength){
+	if(dataPacket[0] != F_SIZE)
+		return -1;
+	*fieldLength = dataPacket[1];
+	int fileSize = 0;
+	int i = 0;
+	for(; i < (*fieldLength); i++){
+		fileSize |= dataPacket[i] << (i * 4);
+	}
+
+	return fileSize;
+}
+
+char * readFileName = readFileName(char * dataPacket, int * fieldLength){
+	if(dataPacket[0] != F_NAME)
+		return -1;
+
+	*fieldLength = dataPacket[1];
+	char * fileName = malloc(*fieldLength);
+	memcpy(fileName, dataPacket[2], *fieldLength);
+	return fileName;
 }
 
 void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
@@ -49,7 +137,7 @@ void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
 
     printf("tamanho!: %lld\n", (long long)file_stat->st_size);
 
-	//ll_open(link_layer);
+	ll_open(link_layer);
 
 	char controlPacket[3 + 4 + 3 + strlen(file_name) + 1];
 

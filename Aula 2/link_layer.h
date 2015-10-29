@@ -18,7 +18,6 @@ typedef struct {
 	char * port; 						//Dispositivo /dev/ttySx, x = 0, 1
 	int fd;
 	int baudRate; 						//Velocidade de transmissão
-	unsigned int sequenceNumber;		//Número de sequência da trama: 0, 1
 	unsigned int timeout; 				//Valor do temporizador: 1 s
 	unsigned int maxTries; 				//Número de tentativas em caso de falha
 	unsigned int maxFrameSize;
@@ -41,7 +40,7 @@ int ll_write(LinkLayer *link_layer, int size);
 
 int ll_read(LinkLayer *link_layer);
 
-void ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status);
+void ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status);
 
 void ll_end(LinkLayer * linkLayer);
 
