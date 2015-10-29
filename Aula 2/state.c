@@ -1,11 +1,14 @@
 #include "state.h"
 #include "alarm.h"
 #include "utils.h"
-#include "link_layer.h"
 #include "bstuffing.h"
 
 #include <unistd.h>
 #include <stdio.h>
+
+#define FAILED -1
+#define RE_SEND_RR -2
+#define RE_SEND_SET -3
 
 static volatile int STOP_UA=FALSE;
 
@@ -537,12 +540,12 @@ int check_SET(char *sent) {
 	return error;
 }
 
-int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *link_layer){
+int check_I(char * dataPacket, int s, char *frame, int frameSize){
 
 	int stuffedPacketSize  = frameSize - 2;
 
 	if(stuffedPacketSize < 6)
-		return -1;
+		return FAILED;
 
 	char * stuffedPacket = frame + sizeof(*frame); //corrigir, warning
 	
@@ -553,32 +556,23 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *lin
 
 	//Verificar o A
 	if(framedPacket[0] != A)
-		return -1;
+		return FAILED;
 
 
 	//Verificar o C
 	char currC = (s<<5);
 
 	if(framedPacket[1] != (s<<5)){
-		if(currC == (s ^ 0x1)<<5)									// se o currC corresponder a um N(s) diferente do suposto, volta a reenviar um RR
-			send_RR(link_layer->fd, currC);
-
-		if(check_SET(framedPacket) && framedPacketSize == 5){		// se o framedPacket corresponder a um SET volta a reenviar um UA; //fazer check_set
-			char UA[5];
-		    UA[0] = F;
-		    UA[1] = A;
-		    UA[2] = C_UA;
-		    UA[3] = A^C_UA;
-		    UA[4] = F;
-
-			send_UA(link_layer->fd,UA);
-		}
-		return -1;
+		if(currC == (s ^ 0x1)<<5)
+			return RE_SEND_RR;
+		if(check_SET(framedPacket) && framedPacketSize == 5)		 
+			return RE_SEND_SET;
+		return FAILED;	
 	}
 
 	//Verificar BCC1
 	if(framedPacket[2] != (A ^ currC))			
-		return -1;
+		return FAILED;
 	
 	//Verificar BCC2 e ao mesmo tempo passar para o array onde é suposto guardar o dataPacket
 	char bcc_2 = framedPacket[3];
@@ -590,7 +584,7 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *lin
 	}
 
 	if(bcc_2 != framedPacket[framedPacketSize - 1]);
-		return -1;
+		return FAILED;
 
 
 	return framedPacketSize - 4;

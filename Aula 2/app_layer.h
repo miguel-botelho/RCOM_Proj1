@@ -13,9 +13,7 @@
 #define NUMBER_FLAGS 2;
 #define FRAME_HEADER_SIZE 3+1;
 #define PACKET_HEADER_SIZE 4;
-
-
-#define 
+ 
 
 void app_layer(LinkLayer *link_layer, char** argv);
 

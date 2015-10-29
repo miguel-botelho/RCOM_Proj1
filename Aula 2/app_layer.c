@@ -112,7 +112,7 @@ int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 }
 
 int getPacketSize(int maxFrameSize){
-	return (maxFrameSize - NUMBER_FLAGS)/2 - FRAME_HEADER_SIZE - PACKET_HEADER_SIZE;
+	return (maxFrameSize - NUMBER_FLAGS)/2 - FRAME_HEADER_SIZE - PACKET_HEADER_SIZE);
 }
 
 int al_sendPacket(LinkLayer * link_layer, char * packet, int size,i){

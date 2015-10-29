@@ -87,7 +87,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     do {
       setStopDISC(FALSE);
       diskSize = receive_FRAME(link_layer->fd, DISC);
-      int result = check_I(dataPacket, s, DISC, diskSize, link_layer);
+      int result = check_I(dataPacket, s, DISC, diskSize);
       if(result == RE_SEND_RR){
       	send_RR(link_layer->fd,s);
       }
@@ -255,14 +255,14 @@ int ll_read(LinkLayer * link_layer) {
 				break;
 			case RE_SEND_RR:
 				currC = (s<<5);
-				send_RR(link_layer->fd,currC); //queres enviar que trama? WTF
+				send_RR(link_layer->fd,currC);
 				break;
 			case RE_SEND_SET:
-			    UA[0] = F;
-			    UA[1] = A;
-			    UA[2] = C_UA;
-			    UA[3] = A^C_UA;
-			    UA[4] = F;
+				UA[0] = F;
+				UA[1] = A;
+				UA[2] = C_UA;
+				UA[3] = A^C_UA;
+			        UA[4] = F;
 
 				send_UA(link_layer->fd,UA);
 				break;

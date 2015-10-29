@@ -16,7 +16,7 @@ int receive_FRAME(int fd, char *FRAME);
 
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);
-int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *link_layer);
+int check_I(char * dataPacket, int s, char *frame, int frameSize);
 
 int getStopUA();
 void setStopUA(int st);

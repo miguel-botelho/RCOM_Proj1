@@ -16,16 +16,14 @@
 #include "app_layer.h"
 
 int main(int argc, char** argv) {
-  int fd;
-  struct termios oldtio,newtio;
   LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
-	struct sigaction sa;
+  struct sigaction sa;
   sa.sa_flags = 0;
   sa.sa_handler = atende;
   if (sigaction(SIGALRM, &sa, NULL) == -1) {
     perror("Error: cannot handle SIGALRM");
-    return NULL;
+    return 0;
   }
     
   if ( (argc < 2) || 
