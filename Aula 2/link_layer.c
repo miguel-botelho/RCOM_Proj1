@@ -181,7 +181,7 @@ int ll_write(LinkLayer *link_layer, int size) {
 	C = C|(s << 5);
 	frameAdder[0] = A;
 	frameAdder[1] = C;
-	frameAdder[2] = frameAdder[1] ^ frameAdder[2];
+	frameAdder[2] = frameAdder[0] ^ frameAdder[1];
 
 	int i;
 	frameAdder[3] = data_packet[0];
