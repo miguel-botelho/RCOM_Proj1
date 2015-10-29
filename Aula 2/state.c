@@ -390,6 +390,7 @@ int receive_RR(int fd, char *RR, int s) {
 			case BCC_OK:
 				if (flag_ST == F){
 						option = STOP_ST;
+						STOP_RR = TRUE;
 						RR[4] = flag_ST;
 					}
 				else
