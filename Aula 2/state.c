@@ -473,7 +473,8 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 
 	while(!(STOP_FRAME)){
 		read(fd, &flag_ST, 1);
-
+		fprintf(stderr, "option %d, flag_ST %x\n",option, flag_ST);
+		sleep(1);
 		switch (option) {
 			case START:
 				data = 0;
