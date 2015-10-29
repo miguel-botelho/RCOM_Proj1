@@ -218,7 +218,7 @@ int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 		else
 			packetSize = size - sentBytes;
 		fprintf(stderr, "Sending dataPacket i = %d with size %d\n", i, packetSize);
-		if(al_sendPacket(link_layer, &file_buffer[sentBytes-1], packetSize,i) < 0){ //ve isto
+		if(al_sendPacket(link_layer, &file_buffer[sentBytes], packetSize,i) < 0){ //ve isto
 			fprintf(stderr, "Error sending dataPacket i=%d\n",i );	
 			exit(-1);
 		}
@@ -242,8 +242,8 @@ int al_sendPacket(LinkLayer * link_layer, char * packet, int size,int i){
 
 	memcpy(&(link_layer->dataPacket[4]), packet, size);
 
-	fprintf(stderr, "%s\n", packet);
-
+	//fprintf(stderr, "%x %x\n", (unsigned char)packet[0], (unsigned) packet[1]);
+	sleep(1);
 	return ll_write(link_layer, size + PACKET_HEADER_SIZE);
 }
 
