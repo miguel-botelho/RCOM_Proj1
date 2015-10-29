@@ -15,10 +15,10 @@ void app_layer_receiver(LinkLayer *link_layer) {
 	FileInfo file;
 	int bytesRead = al_readFile(link_layer, &file);
 
-	fd = open(file->name, O_WRONLY | O_TRUNC	| O_CREAT, 0660);
-	write(fd, file->file, bytesRead);
+	int fd = open(file.name, O_WRONLY | O_TRUNC	| O_CREAT, 0660);
+	write(fd, file.file, bytesRead);
 
-	setTries(LinkLayer->maxTries);
+	setTries(link_layer->maxTries);
 
 	ll_close(link_layer);
 }
@@ -32,7 +32,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 
 	int received = FALSE;
 	int bytesRead = 0;
-	fprintf(stderr, "A recever dados\n", );
+	fprintf(stderr, "A recever dados\n");
 	do{
 		int packetSize = ll_read(link_layer);
 
@@ -49,7 +49,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 			bytesRead += bytes;
 		(file->sequenceNumber)++;
 
-	}while(!received)
+	}while(!received);
 
 	fprintf(stderr, "Expected %d bytes. Received %d bytes!!\n", file->size,bytesRead);
 
@@ -71,7 +71,7 @@ int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 	if(seqNum != file->sequenceNumber)
 		return -1;
 
-	memcpy(file->file[bytesRead], dataPacket[4], size);
+	memcpy(&(file->file[bytesRead]), &dataPacket[4], size);
 
 	return size;
 }
@@ -85,12 +85,12 @@ int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
 		return -1;
 
 	int fieldLength=0;
-	int fileSize = readFileSize(&dataPacket[1], &fieldLength)
+	int fileSize = readFileSize(&dataPacket[1], &fieldLength);
 	if(fileSize < 0)
 		return -1;
 
 	char * fileName = readFileName(&dataPacket[1+2+fieldLength], &fieldLength);
-	if(fileName == -1)
+	if(fileName == NULL)
 		return -1;
 
 	file->size = fileSize;
@@ -108,12 +108,12 @@ int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 		return -1;
 
 	int fieldLength=0;
-	int fileSize = readFileSize(&dataPacket[1], &fieldLength)
+	int fileSize = readFileSize(&dataPacket[1], &fieldLength);
 	if(fileSize < 0)
 		return -1;
 
 	char * fileName = readFileName(&dataPacket[1+2+fieldLength], &fieldLength);
-	if(fileName == -1)
+	if(fileName == NULL)
 		return -1;
 
 	if(file->size != fileSize)
@@ -137,13 +137,13 @@ int readFileSize(char * dataPacket, int * fieldLength){
 	return fileSize;
 }
 
-char * readFileName = readFileName(char * dataPacket, int * fieldLength){
+char * readFileName(char * dataPacket, int * fieldLength){
 	if(dataPacket[0] != F_NAME)
-		return -1;
+		return NULL;
 
 	*fieldLength = dataPacket[1];
 	char * fileName = malloc(*fieldLength);
-	memcpy(fileName, dataPacket[2], *fieldLength);
+	memcpy(fileName, &dataPacket[2], *fieldLength);
 	return fileName;
 }
 

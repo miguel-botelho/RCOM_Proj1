@@ -46,10 +46,13 @@ void controlPacket_name(struct stat * file_stat, char * controlPacket, char * na
 int al_sendPacket(LinkLayer * link_layer, char * packet, int size, int i);
 int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size);
 
-char * al_readFile(LinkLayer * link_layer, char * file);
+int al_readFile(LinkLayer * link_layer, FileInfo * file);
 int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file);
+int readFileSize(char * dataPacket, int * fieldLength);
+char * readFileName(char * dataPacket, int * fieldLength);
 int al_checkEndCtrlPacket(LinkLayer * link_layer, FileInfo * file, int packetSize);
 int readFileSize(char * dataPacket, int * fieldLength);
+int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSize, int bytesRead);
 
 int getPacketSize(int maxFrameSize);
 

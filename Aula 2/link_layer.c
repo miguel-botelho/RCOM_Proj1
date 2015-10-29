@@ -206,7 +206,6 @@ int ll_write(LinkLayer *link_layer, int size) {
 	while (tries < link_layer->maxTries) {
 
 		write(link_layer->fd, frame, frameSize); //enviar packet
-		int j=0;	
 		alarm(3);
 		setFlag(0);
 
@@ -321,7 +320,6 @@ void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int t
     newLinkLayer->fd = fd;
     newLinkLayer->baudRate = baudRate;
     newLinkLayer->port = port;
-    newLinkLayer->sequenceNumber = sequenceNumber;
     newLinkLayer->timeout = timeout;
     newLinkLayer->maxTries = maxTries;
     newLinkLayer->maxFrameSize = maxFrameSize;

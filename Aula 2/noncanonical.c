@@ -20,36 +20,26 @@ int main(int argc, char** argv) {
 	
   	LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
-	struct sigaction sa;
-	sa.sa_flags = 0;
-	sa.sa_handler = atende;
-	if (sigaction(SIGALRM, &sa, NULL) == -1) {
-		perror("Error: cannot handle SIGALRM");
-		return 0;
-	}
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sa.sa_handler = atende;
+  if (sigaction(SIGALRM, &sa, NULL) == -1) {
+    perror("Error: cannot handle SIGALRM");
+    return 0;
+  }
 
-	if ( (argc < 2) ||
-			((strcmp("/dev/ttyS0", argv[1])!=0) &&
-					(strcmp("/dev/ttyS4", argv[1])!=0) )) {
-		printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
-		exit(1);
-	}
+  if ( (argc < 2) || 
+	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
+	      (strcmp("/dev/ttyS4", argv[1])!=0))) {
+    printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
+    exit(1);
+  }
 
+  ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 1000, RECEIVER); 
 
-	ll_init(link_layer, argv[1], BAUDRATE, 0, 1, 5, 1000, RECEIVER); 
+  app_layer(link_layer, 0);
 
-	//app_layer(link_layer, argv);
-
-	ll_open(link_layer);
-
-	fprintf(stderr,"ll_open executado\n");
-	ll_read(link_layer);
-	fprintf(stderr, "ll_read acabou\n");
-	printf("%s\n", link_layer->dataPacket);
-
-	ll_close(link_layer);
-
-	ll_end(link_layer);
+  ll_end(link_layer);
 
 	return 0;
 }
