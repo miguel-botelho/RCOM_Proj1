@@ -14,7 +14,7 @@ int bytestuffing(char * dataPacket, int size, char * stuffedPacket){
 		}
 	}
 
-	return j - 1;
+	return j;
 }
 
 int bytedestuffing(char * stuffedPacket, int size, char * dataPacket){
@@ -27,5 +27,5 @@ int bytedestuffing(char * stuffedPacket, int size, char * dataPacket){
 		}
 		dataPacket[i] = stuffedPacket[j];
 	}
-	return i - 1;
+	return i;
 }
