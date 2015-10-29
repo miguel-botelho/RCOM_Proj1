@@ -34,7 +34,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 	int bytesRead = 0;
 	fprintf(stderr, "A recever dados\n");
 	do{
-		fprintf(stderr, "Started reading packet %d"\n,file->sequenceNumber);		
+		fprintf(stderr, "Started reading packet %d\n",file->sequenceNumber);		
 		int packetSize = ll_read(link_layer);
 
 		if(al_checkEndCtrlPacket(link_layer,file, packetSize)){
@@ -49,7 +49,8 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 		else{
 			fprintf(stderr, "Success reading packet %d\n", file->sequenceNumber);
 			bytesRead += bytes;
-		}(file->sequenceNumber)++;
+		}
+		(file->sequenceNumber)++;
 
 	}while(!received);
 
