@@ -282,24 +282,26 @@ int ll_read(LinkLayer * link_layer) {
 
 
 void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
-    struct termios * oldtio = (struct termios *) malloc(sizeof(struct termios));
+    struct termios * oldtio = malloc(sizeof(struct termios));
     struct termios newtio;
+    fprintf(stderr, "oldtio allocado\n");   	
+    newLinkLayer->port = port;
 	
-	memcpy(newLinkLayer->port, port, 20);
-
 	int fd = open(port, O_RDWR | O_NOCTTY );
 	if (fd < 0) {
 		fprintf(stderr, "Error opening port %s\n", port);
 		exit (-1);
 	}
 
-
+    fprintf(stderr, "porta aberta\n");   	
 	if ( tcgetattr(fd,oldtio) == -1) { /* save current port settings */
       perror("tcgetattr");
       exit(-1);
     }
+    fprintf(stderr, "guardado oldtio\n");   	
 	//nao passou
     bzero(&newtio, sizeof(newtio));
+    fprintf(stderr, "10\n");    
     newtio.c_cflag = baudRate | CS8 | CLOCAL | CREAD;
     newtio.c_iflag = IGNPAR;
     newtio.c_oflag = 0;
@@ -317,13 +319,13 @@ void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int s
 
 
     tcflush(fd, TCIOFLUSH);
-
+    fprintf(stderr, "12\n");
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
       perror("tcsetattr");
       exit(-1);
     }
-
-	newLinkLayer->fd = fd;
+    fprintf(stderr, "vai começar a copiar para o linklayer\n");
+    newLinkLayer->fd = fd;
     newLinkLayer->baudRate = baudRate;
     newLinkLayer->port = port;
     newLinkLayer->sequenceNumber = sequenceNumber;
@@ -335,7 +337,7 @@ void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int s
 
     newLinkLayer->dataPacket = malloc( (maxFrameSize - 2)/2 - (3 + 1));
 
-    printf("New termios structure set\n");
+    fprintf(stderr,"New termios structure set\n");
 
 }
 
