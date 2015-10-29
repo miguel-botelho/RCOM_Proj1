@@ -72,7 +72,7 @@ int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 		return -1;
 
 	int seqNum = dataPacket[1];
-	int size = ((unsigned int)dataPacket[2]<<4) +((unsigned int) dataPacket[3]);
+	int size = ((unsigned int)dataPacket[2]<<8) +((unsigned int) dataPacket[3]);
 
 	if(size != packetSize -4)
 		return -1;
@@ -104,12 +104,8 @@ int al_readInitControlPacket(LinkLayer * link_layer, FileInfo * file){
 
 	file->size = fileSize;
 	file->name = fileName;
-	
-	fprintf(stderr, "name of file:%s\n", file->name);
-	fprintf(stderr, "size of file:%d\n", fileSize);
-	
 
-	int fd = open("pinguim.gif", O_WRONLY | O_TRUNC | O_CREAT, 0660);
+	int fd = open(fileName, O_WRONLY | O_TRUNC | O_CREAT, 0660);
 	file->fd = fd;
 	file->sequenceNumber = 0;
 	return 1;
