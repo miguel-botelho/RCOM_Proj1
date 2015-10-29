@@ -580,7 +580,7 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	//Verificar BCC1
 	if(framedPacket[2] != (A ^ currC))			
 		return FAILED;
-	fprintf(stderr, "Verifica BCC2\n");
+
 	//Verificar BCC2 e ao mesmo tempo passar para o array onde é suposto guardar o dataPacket
 	char bcc_2 = framedPacket[3];
 	dataPacket[0] = framedPacket[3];
@@ -589,11 +589,11 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 		dataPacket[i-3] = framedPacket[i];
 		bcc_2 ^= framedPacket[i];
 	}
-
-	if(bcc_2 != framedPacket[framedPacketSize - 1]);
+	fprintf(stderr, "Verifica BCC2 %x Espera %x \n", bcc_2, framedPacket[framedPacketSize -1]);
+	if(bcc_2 != framedPacket[framedPacketSize - 1] )
 		return FAILED;
 
-
+	
 	return framedPacketSize - 4;
 }
 
