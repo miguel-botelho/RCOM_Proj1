@@ -3,21 +3,21 @@
 
 static int s = 0;
 
-void ll_open(LinkLayer *link_layer) {
+int ll_open(LinkLayer *link_layer) {
     if (link_layer->status == RECEIVER)
-	ll_open_receiver(link_layer);
-    else if (link_layer->status == TRANSMITTER)
-	ll_open_transmitter(link_layer);
+		return ll_open_receiver(link_layer);
+    else 
+		return ll_open_transmitter(link_layer);
 }
 
-void ll_close(LinkLayer *link_layer) {
+int ll_close(LinkLayer *link_layer) {
     if (link_layer->status == RECEIVER)
-	ll_close_receiver(link_layer);
-    else if (link_layer->status == TRANSMITTER)
-	ll_close_transmitter(link_layer);
+		return ll_close_receiver(link_layer);
+    else 
+		return ll_close_transmitter(link_layer);
 }
 
-void ll_open_receiver(LinkLayer *link_layer) {
+int ll_open_receiver(LinkLayer *link_layer) {
     char SET[5];
     char UA[5];
     
@@ -32,10 +32,11 @@ void ll_open_receiver(LinkLayer *link_layer) {
     //printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
     send_UA(link_layer->fd, UA);
+    return -1;
 
 }
 
-void ll_open_transmitter(LinkLayer *link_layer) {
+int ll_open_transmitter(LinkLayer *link_layer) {
 	int tries = getTries();
 	char UA[5];
 	char SET[5];
@@ -59,16 +60,16 @@ void ll_open_transmitter(LinkLayer *link_layer) {
 		
 		if(!(check_UA(UA))){
 		    //printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
-		    tries=99;
+		    tries=-1;
+		    break;
 		}else{
 		    tries++;
-		}
-				
+		}		
 	}
-
+	return tries;
 }
 
-void ll_close_receiver(LinkLayer *link_layer) {
+int ll_close_receiver(LinkLayer *link_layer) {
  
     char DISC[link_layer->maxFrameSize];
     char UA[5];
@@ -81,7 +82,7 @@ void ll_close_receiver(LinkLayer *link_layer) {
     DISC_send[4] = F;
     
     int diskSize = 0;
-    char dataPacket[link_layer->maxFrameSize]; // querias por int aqui? ok...
+    char dataPacket[link_layer->maxFrameSize]; 
 
     do {
       setStopFRAME(FALSE);
@@ -93,9 +94,10 @@ void ll_close_receiver(LinkLayer *link_layer) {
     }while(check_DISC(DISC));
     
     
-    //printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+    printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
         
-    int tries = getTries();	
+    int tries = getTries();
+    fprintf(stderr, "Tries = %d\n", tries);
     
     while(tries <= ATTEMPTS){
 		printf("Attempt %d\n", tries);
@@ -107,18 +109,18 @@ void ll_close_receiver(LinkLayer *link_layer) {
 		setStopUA(FALSE);	
 		receive_UA(link_layer->fd, UA);		
 		if(!(check_UA(UA))){
-			//printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
-			tries=99;
+			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+			tries=-1;
+			break;
 		}
 		else{
 		  tries++;
 		}
-
-		//TODO esperar por I e enviar RR com nr a seguir
 	}
+	return tries;
 }
 
-void ll_close_transmitter(LinkLayer *link_layer) {
+int ll_close_transmitter(LinkLayer *link_layer) {
   
     char DISC[5];
     char DISC_rec[5];
@@ -151,7 +153,8 @@ void ll_close_transmitter(LinkLayer *link_layer) {
 		if(!(check_DISC(DISC_rec)))
 		{
 			//printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
-			setTries(99);
+			tries = -1;
+			break;
 		}
 		else
 		{
@@ -163,10 +166,10 @@ void ll_close_transmitter(LinkLayer *link_layer) {
 		
 		tries = getTries();
 		
-	
 	}	
-	
-	send_UA(link_layer->fd, UA);
+	if(tries < 0)
+		send_UA(link_layer->fd, UA);
+	return tries;
 }
 
 int ll_write(LinkLayer *link_layer, int size) {
@@ -181,22 +184,23 @@ int ll_write(LinkLayer *link_layer, int size) {
 	frameAdder[1] = C;
 	frameAdder[2] = frameAdder[0] ^ frameAdder[1];
 
-	int i;
+	int i=0;
 	frameAdder[3] = data_packet[0];
-	//fprintf(stderr, "frameAdder[3] = %x\n",(unsigned char) frameAdder[3]);
+	//fprintf(stderr, "data_packet[%d]=%x\n",i, data_packet[i]);
 	char bcc_2 = frameAdder[3];
-	for (i = 1; i < size + 3; i++) {
+	for (i = 1; i < size; i++) {
 		frameAdder[i+3]=data_packet[i];
+		//fprintf(stderr, "data_packet[%d]=%x\n",i, (unsigned char) data_packet[i]);
 		bcc_2^=data_packet[i];
 	}
 	frameAdder[size+3] = bcc_2;
-	fprintf(stderr, "bcc_2 %x\n", (unsigned char) bcc_2);
+	//fprintf(stderr, "bcc_2 %x\n", (unsigned char) bcc_2);
 	char frame[(size + 4) * 2 + 2];
-	char * stuffedPacket = frame + sizeof(*frame);
+	char * stuffedPacket = frame + 1;
 	int size_stuffed_packet = bytestuffing(frameAdder, size + 4, stuffedPacket);
-	//fprintf(stderr, "size_stuffed_packet=%d\n", (unsigned char)size_stuffed_packet);
+	//fprintf(stderr, "size_stuffed_packet=%d size%d\n", size_stuffed_packet, size);
 	int frameSize = size_stuffed_packet + 2;
-	fprintf(stderr, "bcc_2 stuffed %x\n",(unsigned char) stuffedPacket[size_stuffed_packet - 1]);
+	//fprintf(stderr, "bcc_2 stuffed %x\n",(unsigned char) stuffedPacket[size_stuffed_packet - 1]);
 
 
 	frame[0] = FLAG;

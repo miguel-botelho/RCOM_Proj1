@@ -27,14 +27,14 @@ typedef struct {
 	char * dataPacket;
 } LinkLayer;
 
-void ll_open(LinkLayer *link_layer);
-void ll_close(LinkLayer *link_layer);
+int ll_open(LinkLayer *link_layer);
+int ll_close(LinkLayer *link_layer);
 
-void ll_open_receiver(LinkLayer *link_layer);
-void ll_open_transmitter(LinkLayer *link_layer);
+int ll_open_receiver(LinkLayer *link_layer);
+int ll_open_transmitter(LinkLayer *link_layer);
 
-void ll_close_receiver(LinkLayer *link_layer);
-void ll_close_transmitter(LinkLayer *link_layer);
+int ll_close_receiver(LinkLayer *link_layer);
+int ll_close_transmitter(LinkLayer *link_layer);
 
 int ll_write(LinkLayer *link_layer, int size);
 

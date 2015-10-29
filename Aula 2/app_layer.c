@@ -15,12 +15,21 @@ void app_layer_receiver(LinkLayer *link_layer) {
 	FileInfo file;
 	int bytesRead = al_readFile(link_layer, &file);
 
-	int fd = open(file.name, O_WRONLY | O_TRUNC	| O_CREAT, 0660);
+	char * folder = "results/";
+	char * new_str ;
+	new_str = malloc(strlen(folder)+strlen(file.name)+1);
+	new_str[0] = '\0';   
+	strcat(new_str,folder);
+	strcat(new_str,file.name);
+	
+	int fd = open("file.gif", O_WRONLY | O_TRUNC | O_CREAT, 0777);
 	write(fd, file.file, bytesRead);
 
-	setTries(link_layer->maxTries);
-
-	ll_close(link_layer);
+	setTries(0);
+	if(ll_close(link_layer) < 0)
+		fprintf(stderr, "Ligação terminada com sucesso\n");
+	else
+		fprintf(stderr, "Não foi possivel terminar a ligação correctamente\n");
 }
 
 int al_readFile(LinkLayer * link_layer, FileInfo * file){
@@ -39,6 +48,7 @@ int al_readFile(LinkLayer * link_layer, FileInfo * file){
 
 		if(al_checkEndCtrlPacket(link_layer,file, packetSize) > 0){
 			received = TRUE;
+			fprintf(stderr, "Recevido pacote controlo 2\n"); 
 			break;
 		}
 
@@ -66,7 +76,7 @@ int readInformationPacket(LinkLayer * link_layer, FileInfo * file, int packetSiz
 		return -1;
 
 	int seqNum = dataPacket[1];
-	int size = 256*dataPacket[2] + dataPacket[3];
+	int size = ((unsigned int)dataPacket[2]<<4) +((unsigned int) dataPacket[3]);
 
 	if(size != packetSize -4)
 		return -1;
@@ -133,11 +143,11 @@ int readFileSize(char * dataPacket, int * fieldLength){
 	if(dataPacket[0] != F_SIZE)
 		return -1;
 	*fieldLength = dataPacket[1];
-	int fileSize = 0;
-	int i = 0;
-	for(; i < (*fieldLength); i++){
-		fileSize |= dataPacket[i] << (i * 4);
-	}
+	int fileSize=*((uint32_t *) &dataPacket[2]);
+	//int i = 0;
+
+	
+	
 
 	return fileSize;
 }
@@ -191,29 +201,31 @@ void app_layer_transmitter(LinkLayer *link_layer, char * file_name) {
 
 	setTries(1);
 	fprintf(stderr, "A terminar ligação\n");
-	ll_close(link_layer);
-	fprintf(stderr, "Terminada ligação\n");
+	if(ll_close(link_layer) < 0)
+		fprintf(stderr, "Ligação terminada com sucesso\n");
+	else
+		fprintf(stderr, "Não foi possivel terminar a ligação correctamente\n");
 
 }
 
 int al_sendFile(LinkLayer * link_layer, char * file_buffer, int size){
 	int defautlPacketSize = getPacketSize(link_layer->maxFrameSize);
-	int numPackets = size/defautlPacketSize;
 
 	int sentBytes = 0;
 	int i = 0;
-	for(; i < numPackets; i ++){
-		fprintf(stderr, "Sending dataPacket i = %d\n", i);
+	while(sentBytes < size){
 		int packetSize;
 		if((size - sentBytes) >= defautlPacketSize )
 			packetSize = defautlPacketSize;
 		else
-			packetSize = size - defautlPacketSize;
-		if(al_sendPacket(link_layer, &file_buffer[i*packetSize], packetSize,i) < 0){
+			packetSize = size - sentBytes;
+		fprintf(stderr, "Sending dataPacket i = %d with size %d\n", i, packetSize);
+		if(al_sendPacket(link_layer, &file_buffer[sentBytes-1], packetSize,i) < 0){
 			fprintf(stderr, "Error sending dataPacket i=%d\n",i );	
 			exit(-1);
 		}
-
+		fprintf(stderr, "dataPacket sent i = %d, with size %d\n", i, packetSize);
+		i++;
 		sentBytes += packetSize;
 	}
 	

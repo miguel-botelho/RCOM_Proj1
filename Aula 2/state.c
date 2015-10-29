@@ -478,7 +478,7 @@ int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 
 	while(!(STOP_FRAME)){
 		read(fd, &flag_ST, 1);
-		//fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
+		//fprintf(stderr, "option %d, flag_ST %x data %d\n",option, (unsigned char)flag_ST,data);
 
 		switch (option) {
 			case START:
@@ -587,7 +587,7 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize){
 	int i = 3;
 	char bcc_2 = framedPacket[i];
 	dataPacket[i-3] = framedPacket[i];
-	//fprintf(stderr, "i = %d\n", i);
+	//fprintf(stderr, "framedPacket[3] = %x\n", (unsigned char)framedPacket[3]);
 	for(i = 4; i < framedPacketSize - 1; i++){
 		dataPacket[i-3] = framedPacket[i];
 		bcc_2 ^= framedPacket[i];

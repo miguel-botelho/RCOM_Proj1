@@ -13,7 +13,8 @@
 #include <unistd.h>
 #include <math.h>
 #include <string.h>
-
+#include <limits.h>
+#include <stdint.h>
 
 #define C_START 1
 #define C_END 2
