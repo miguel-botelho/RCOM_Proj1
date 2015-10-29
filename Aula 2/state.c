@@ -87,9 +87,10 @@ void receive_UA(int fd, char *UA) {
 	char flag_ST;
 
 	while(!(STOP_UA)) {
-				
+		fprintf(stderr, "flag %d\n", getFlag());	
 		read(fd, &flag_ST, 1);
 		int flag = getFlag();
+		fprintf(stderr, "option %d, flag_ST %x flag %d\n",option, flag_ST,flag);
 		if(flag && flag != -1){
 		      alarm(0);
 		      setFlag(-1);
@@ -148,6 +149,7 @@ void receive_UA(int fd, char *UA) {
 			case BCC_OK:
 				if (flag_ST == F){
 						option = STOP_ST;
+						STOP_UA = TRUE;
 						UA[4] = flag_ST;
 					}
 				else
@@ -225,6 +227,7 @@ void receive_SET(int fd, char *SET) {
 			if (flag_ST == F){
 					option = STOP_ST;
 					SET[4] = flag_ST;
+					STOP_SET = TRUE;
 				}
 			else
 				option = START;
