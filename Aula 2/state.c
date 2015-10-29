@@ -335,8 +335,9 @@ int receive_RR(int fd, char *RR, int s) {
 	int c_rr = 1 | (r << 5); 
 
 	while(!(STOP_RR)){
+		
 		read(fd, &flag_ST, 1);
-
+		fprintf(stderr, "option %d flag_ST 0x%x flag %d r %d c_rr %x\n", option, flag_ST, getFlag(), r, c_rr);
 		int flag = getFlag();
 		if(flag && flag != -1){
 		    alarm(0);
