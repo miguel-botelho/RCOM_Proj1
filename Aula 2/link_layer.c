@@ -208,7 +208,11 @@ int ll_write(LinkLayer *link_layer, int size) {
 	while (tries < link_layer->maxTries) {
 
 		write(link_layer->fd, frame, frameSize); //enviar packet
-
+		int j=0;	
+		for(;j<frameSize; j++){
+			fprintf(stderr, "%x ",frame[j]);
+		}
+		fprintf(stderr, "\n");
 		alarm(3);
 		setFlag(0);
 

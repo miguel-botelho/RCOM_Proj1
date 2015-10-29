@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
   char * str = "Teste link_layer";
   strcpy(link_layer->dataPacket,str);
   fprintf(stderr, "Começa a escrever\n");
-  ll_write(link_layer, strlen(str));
+  if(ll_write(link_layer, strlen(str)) < 0)
+	exit(-1);
   fprintf(stderr, "Acabou de escrever\n");
   ll_close(link_layer);
 
