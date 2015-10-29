@@ -29,11 +29,10 @@ void ll_open_receiver(LinkLayer *link_layer) {
 
     receive_SET(link_layer->fd, SET);
     
-    printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+    //printf("FLAGS READ FROM SET: %x, %x, %x, %x, %x\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 
     send_UA(link_layer->fd, UA);
 
-    sleep(1);
 }
 
 void ll_open_transmitter(LinkLayer *link_layer) {
@@ -58,19 +57,15 @@ void ll_open_transmitter(LinkLayer *link_layer) {
 		
 		receive_UA(link_layer->fd, UA);
 		
-		if(!(check_UA(UA)))
-		{
-		    printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+		if(!(check_UA(UA))){
+		    //printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 		    tries=99;
-		}
-		else
-		{
+		}else{
 		    tries++;
 		}
 				
 	}
 
-	sleep(1);
 }
 
 void ll_close_receiver(LinkLayer *link_layer) {
@@ -89,19 +84,17 @@ void ll_close_receiver(LinkLayer *link_layer) {
     char dataPacket[link_layer->maxFrameSize]; // querias por int aqui? ok...
 
     do {
-      setStopDISC(FALSE);
-      diskSize = receive_FRAME(link_layer->fd, DISC);
-      int result = check_I(dataPacket, s, DISC, diskSize, link_layer);
+      setStopFRAME(FALSE);
+      diskSize = receive_FRAME(link_layer->fd, DISC, link_layer->maxFrameSize);
+      int result = check_I(dataPacket, s, DISC, diskSize);
       if(result == RE_SEND_RR){
       	send_RR(link_layer->fd,s);
       }
     }while(check_DISC(DISC));
     
     
-    printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
-    
-    // por while
-    
+    //printf("FLAGS READ WITH SUCCESS FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+        
     int tries = getTries();	
     
     while(tries <= ATTEMPTS){
@@ -112,11 +105,9 @@ void ll_close_receiver(LinkLayer *link_layer) {
     		
 
 		setStopUA(FALSE);	
-		
 		receive_UA(link_layer->fd, UA);		
-		
 		if(!(check_UA(UA))){
-			printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+			//printf("FLAGS READ FROM UA: %x, %x, %x, %x, %x\n\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 			tries=99;
 		}
 		else{
@@ -159,7 +150,7 @@ void ll_close_transmitter(LinkLayer *link_layer) {
 		
 		if(!(check_DISC(DISC_rec)))
 		{
-			printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
+			//printf("FLAGS READ FROM DISC: %x, %x, %x, %x, %x\n\n", DISC_rec[0], DISC_rec[1], DISC_rec[2], DISC_rec[3], DISC_rec[4]);
 			setTries(99);
 		}
 		else
@@ -188,7 +179,7 @@ int ll_write(LinkLayer *link_layer, int size) {
 	C = C|(s << 5);
 	frameAdder[0] = A;
 	frameAdder[1] = C;
-	frameAdder[2] = frameAdder[1] ^ frameAdder[2];
+	frameAdder[2] = frameAdder[0] ^ frameAdder[1];
 
 	int i;
 	frameAdder[3] = data_packet[0];
@@ -215,17 +206,16 @@ int ll_write(LinkLayer *link_layer, int size) {
 	while (tries < link_layer->maxTries) {
 
 		write(link_layer->fd, frame, frameSize); //enviar packet
-
 		alarm(3);
-		setFlag(1);
+		setFlag(0);
 
 		char answerRR[5];
-
-		char ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
-
+		setStopRR(FALSE);
+		int ans = receive_RR(link_layer->fd, answerRR, current_s); //receber RR
+		//printf("FLAGS READ FROM RR: %x, %x, %x, %x, %x\n\n", answerRR[0], answerRR[1], answerRR[2], answerRR[3], answerRR[4]);
 		tries = getTries();
-
-		if (ans == -1) {
+		fprintf(stderr, "%d\n", ans);
+		if (ans < 0) {
 			continue;
 		}
 		s = ans;
@@ -247,52 +237,48 @@ int ll_read(LinkLayer * link_layer) {
 	char UA[5];
 
 
-	while(!validated)
-	{
+	while(!validated){
 		char frame[link_layer->maxFrameSize];
 
 		setStopFRAME(FALSE);
-		int frameSize = receive_FRAME(link_layer->fd, frame);
-
-		dataPacketSize = check_I(dataPacket, s, frame, frameSize, link_layer);
-
+		int frameSize = receive_FRAME(link_layer->fd, frame, link_layer->maxFrameSize);
+		
+		dataPacketSize = check_I(dataPacket, s, frame, frameSize);
 		switch(dataPacketSize){
 			case FAILED:
 				break;
 			case RE_SEND_RR:
 				currC = (s<<5);
-				send_RR(link_layer->fd,currC); //queres enviar que trama? WTF
+				send_RR(link_layer->fd,currC);
 				break;
 			case RE_SEND_SET:
-			    UA[0] = F;
-			    UA[1] = A;
-			    UA[2] = C_UA;
-			    UA[3] = A^C_UA;
-			    UA[4] = F;
+				UA[0] = F;
+				UA[1] = A;
+				UA[2] = C_UA;
+				UA[3] = A^C_UA;
+			        UA[4] = F;
 
 				send_UA(link_layer->fd,UA);
 				break;
 			default:
 				validated = TRUE;
 		}
-
-
 	}
 
-		send_RR(link_layer->fd,(s ^ 0x1));
-		s ^= 0x01;
+	send_RR(link_layer->fd,(s ^ 0x1));
+	s ^= 0x01;
 
-		return dataPacketSize;
+	return dataPacketSize;
 }
 
 
 
-int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int sequenceNumber, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
+void ll_init(LinkLayer * newLinkLayer, char * port, int baudRate, unsigned int timeout, unsigned int maxTries, unsigned int maxFrameSize, int status){
     struct termios * oldtio = malloc(sizeof(struct termios));
-    struct termios oldtio, newtio;
-	
-	memcpy(newLinkLayer->port, port, sizeof(port));
+    struct termios newtio;
 
+    newLinkLayer->port = port;
+	
 	int fd = open(port, O_RDWR | O_NOCTTY );
 	if (fd < 0) {
 		fprintf(stderr, "Error opening port %s\n", port);
@@ -304,8 +290,10 @@ int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int 
       perror("tcgetattr");
       exit(-1);
     }
-	//nao passou
+
+
     bzero(&newtio, sizeof(newtio));
+
     newtio.c_cflag = baudRate | CS8 | CLOCAL | CREAD;
     newtio.c_iflag = IGNPAR;
     newtio.c_oflag = 0;
@@ -314,7 +302,7 @@ int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int 
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
+    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
 
 	/* 
 	VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
@@ -329,17 +317,18 @@ int ll_init(LinkLayer * newLinkLayer, char port[20], int baudRate, unsigned int 
       exit(-1);
     }
 
-	newLinkLayer->fd = fd;
+    newLinkLayer->fd = fd;
     newLinkLayer->baudRate = baudRate;
     newLinkLayer->port = port;
-    newLinkLayer->sequenceNumber = sequenceNumber;
     newLinkLayer->timeout = timeout;
     newLinkLayer->maxTries = maxTries;
     newLinkLayer->maxFrameSize = maxFrameSize;
     newLinkLayer->status = status;
     newLinkLayer->oldtio = oldtio;
 
-    printf("New termios structure set\n");
+    newLinkLayer->dataPacket = malloc( (maxFrameSize - 2)/2 - (3 + 1));
+
+    fprintf(stderr,"New termios structure set\n");
 
 }
 
@@ -349,5 +338,5 @@ void ll_end(LinkLayer * linkLayer){
       perror("tcsetattr");
       exit(-1);
     }
-   close(fd);
+   close(linkLayer->fd);
 }

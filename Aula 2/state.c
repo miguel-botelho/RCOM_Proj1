@@ -1,11 +1,14 @@
 #include "state.h"
 #include "alarm.h"
 #include "utils.h"
-#include "link_layer.h"
 #include "bstuffing.h"
 
 #include <unistd.h>
 #include <stdio.h>
+
+#define FAILED -1
+#define RE_SEND_RR -2
+#define RE_SEND_SET -3
 
 static volatile int STOP_UA=FALSE;
 
@@ -28,9 +31,9 @@ int send_SET(int fd, char *SET) {
 		setFlag(0);
 	}
 
-	res = write(fd, SET, sizeof(SET));
+	res = write(fd, SET, 5);
 
-	printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
+	//printf("FLAGS SENT FROM SET: %x, %x, %x, %x, %x\n\n", SET[0], SET[1], SET[2], SET[3], SET[4]);
 	
 	return res;
 }
@@ -38,9 +41,9 @@ int send_SET(int fd, char *SET) {
 int send_UA(int fd, char *UA) {
   int res;
   
-  res = write(fd, UA, sizeof(UA));
+  res = write(fd, UA, 5);
 
-  printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
+  //printf("FLAGS SENT FROM UA: %x, %x, %x, %x, %x\n", UA[0], UA[1], UA[2], UA[3], UA[4]);
 
   return res;
 }
@@ -58,7 +61,7 @@ int send_DISC(int fd, char *DISC) {
   
   res = write(fd, DISC, 5);
 
-  printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
+  //printf("FLAGS SENT FROM DISC: %x, %x, %x, %x, %x\n", DISC[0], DISC[1], DISC[2], DISC[3], DISC[4]);
 
   return res;  
 }
@@ -73,7 +76,7 @@ int send_RR(int fd, int r){
 	RR[4] = FLAG;
 
 	write(fd, RR, 5);
-	
+	//printf("FLAGS SENT FROM RR: %x, %x, %x, %x, %x\n", RR[0], RR[1], RR[2], RR[3], RR[4]);
 	return 0;
 }
 
@@ -84,9 +87,10 @@ void receive_UA(int fd, char *UA) {
 	char flag_ST;
 
 	while(!(STOP_UA)) {
-				
+		fprintf(stderr, "flag %d\n", getFlag());	
 		read(fd, &flag_ST, 1);
 		int flag = getFlag();
+		//fprintf(stderr, "option %d, flag_ST %x flag %d\n",option, flag_ST,flag);
 		if(flag && flag != -1){
 		      alarm(0);
 		      setFlag(-1);
@@ -145,6 +149,7 @@ void receive_UA(int fd, char *UA) {
 			case BCC_OK:
 				if (flag_ST == F){
 						option = STOP_ST;
+						STOP_UA = TRUE;
 						UA[4] = flag_ST;
 					}
 				else
@@ -222,6 +227,7 @@ void receive_SET(int fd, char *SET) {
 			if (flag_ST == F){
 					option = STOP_ST;
 					SET[4] = flag_ST;
+					STOP_SET = TRUE;
 				}
 			else
 				option = START;
@@ -304,6 +310,7 @@ void receive_DISC(int fd, char *DISC_rec) {
 		case BCC_OK:
 			if (flag_ST == F){
 					option = STOP_ST;
+					STOP_DISC = TRUE;
 					DISC_rec[4] = flag_ST;
 				}
 			else
@@ -387,6 +394,7 @@ int receive_RR(int fd, char *RR, int s) {
 			case BCC_OK:
 				if (flag_ST == F){
 						option = STOP_ST;
+						STOP_RR = TRUE;
 						RR[4] = flag_ST;
 					}
 				else
@@ -403,7 +411,7 @@ int receive_RR(int fd, char *RR, int s) {
 	return r;
 }
 
-int receive_I(int fd, char *I) {
+int receive_I(int fd, char *I, int maxFrameSize) {
 
 	char flag_ST;
 	int data = 0;
@@ -436,11 +444,11 @@ int receive_I(int fd, char *I) {
 				}
 				break;
 			case A_RCV:
-				if (data >= 6 && flag_ST == F){
+				if (data >= 5 && flag_ST == F){
 					I[data] = flag_ST;
 					option = STOP_ST;
 				}
-				else if (data > MAX_FRAME_SIZE){
+				else if (data > maxFrameSize){
 					option = START;
 				}
 				else if (data < 6 && flag_ST == F){
@@ -463,13 +471,15 @@ int receive_I(int fd, char *I) {
 	return data;
 }
 
-int receive_FRAME(int fd, char *FRAME){
+int receive_FRAME(int fd, char *FRAME, int maxFrameSize){
 	char flag_ST;
 	int data = 0;
 	int option = START;
 
 	while(!(STOP_FRAME)){
-		read(fd, &flag_ST, 1);
+		if(read(fd, &flag_ST, 1) <= 0)
+			fprintf(stderr,"Bazou\n");
+		//fprintf(stderr, "option %d, flag_ST %x data %d\n",option, flag_ST,data);
 
 		switch (option) {
 			case START:
@@ -495,14 +505,16 @@ int receive_FRAME(int fd, char *FRAME){
 				}
 				break;
 			case A_RCV:
-				if (data >= 5 && flag_ST == F){
+				if (data >= 4 && flag_ST == F){
 					FRAME[data] = flag_ST;
 					option = STOP_ST;
+					data++;
+					STOP_FRAME = TRUE;
 				}
-				else if (data > MAX_FRAME_SIZE){
+				else if (data > maxFrameSize){
 					option = START;
 				}
-				else if (data < 5 && flag_ST == F){
+				else if (data < 4 && flag_ST == F){
 					option = A_RCV;
 				}
 				else{
@@ -514,6 +526,7 @@ int receive_FRAME(int fd, char *FRAME){
 			case STOP_ST:
 				data++;
 				STOP_FRAME = TRUE;
+				fprintf(stderr, "Vai sair\n");
 				break;
 			default:
 				break;
@@ -537,49 +550,38 @@ int check_SET(char *sent) {
 	return error;
 }
 
-int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *link_layer){
+int check_I(char * dataPacket, int s, char *frame, int frameSize){
 
 	int stuffedPacketSize  = frameSize - 2;
 
 	if(stuffedPacketSize < 6)
-		return -1;
+		return FAILED;
 
-	char * stuffedPacket = frame + sizeof(*frame); //corrigir, warning
 	
+
+	char * stuffedPacket = frame + sizeof(*frame);
 	//Fazer destuff ao packet
 	char framedPacket[stuffedPacketSize];
 	int framedPacketSize = bytedestuffing(stuffedPacket, stuffedPacketSize, framedPacket);
 
-
 	//Verificar o A
 	if(framedPacket[0] != A)
-		return -1;
-
+		return FAILED;
 
 	//Verificar o C
 	char currC = (s<<5);
 
 	if(framedPacket[1] != (s<<5)){
-		if(currC == (s ^ 0x1)<<5)									// se o currC corresponder a um N(s) diferente do suposto, volta a reenviar um RR
-			send_RR(link_layer->fd, currC);
-
-		if(check_SET(framedPacket) && framedPacketSize == 5){		// se o framedPacket corresponder a um SET volta a reenviar um UA; //fazer check_set
-			char UA[5];
-		    UA[0] = F;
-		    UA[1] = A;
-		    UA[2] = C_UA;
-		    UA[3] = A^C_UA;
-		    UA[4] = F;
-
-			send_UA(link_layer->fd,UA);
-		}
-		return -1;
+		if(currC == (s ^ 0x1)<<5)
+			return RE_SEND_RR;
+		if(check_SET(framedPacket) && framedPacketSize == 5)		 
+			return RE_SEND_SET;
+		return FAILED;	
 	}
-
 	//Verificar BCC1
 	if(framedPacket[2] != (A ^ currC))			
-		return -1;
-	
+		return FAILED;
+
 	//Verificar BCC2 e ao mesmo tempo passar para o array onde é suposto guardar o dataPacket
 	char bcc_2 = framedPacket[3];
 	dataPacket[0] = framedPacket[3];
@@ -588,11 +590,10 @@ int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *lin
 		dataPacket[i-3] = framedPacket[i];
 		bcc_2 ^= framedPacket[i];
 	}
+	if(bcc_2 != framedPacket[framedPacketSize - 1] )
+		return FAILED;
 
-	if(bcc_2 != framedPacket[framedPacketSize - 1]);
-		return -1;
-
-
+	
 	return framedPacketSize - 4;
 }
 

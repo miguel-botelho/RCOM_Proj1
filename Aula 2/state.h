@@ -12,11 +12,11 @@ void receive_UA(int fd, char *UA);
 void receive_DISC(int fd, char *DISC);
 int receive_RR(int fd, char *RR, int s);
 
-int receive_FRAME(int fd, char *FRAME);
+int receive_FRAME(int fd, char *FRAME, int maxFrameSize);
 
 int check_UA(char *sent);
 int check_DISC(char *DISC_rec);
-int check_I(char * dataPacket, int s, char *frame, int frameSize, LinkLayer *link_layer);
+int check_I(char * dataPacket, int s, char *frame, int frameSize);
 
 int getStopUA();
 void setStopUA(int st);
@@ -26,6 +26,9 @@ void setStopSET(int st);
 
 int getStopDISC();
 void setStopDISC(int st);
+
+void setStopRR(int st);
+int getStopRR();
 
 void setStopFRAME(int st);
 int getStopFRAME();

@@ -16,18 +16,16 @@
 #include "app_layer.h"
 
 int main(int argc, char** argv) {
-  int fd;
-  struct termios oldtio,newtio;
   LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
-	struct sigaction sa;
+  struct sigaction sa;
   sa.sa_flags = 0;
   sa.sa_handler = atende;
   if (sigaction(SIGALRM, &sa, NULL) == -1) {
     perror("Error: cannot handle SIGALRM");
-    return NULL;
+    return 0;
   }
-    
+
   if ( (argc < 2) || 
 	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
 	      (strcmp("/dev/ttyS4", argv[1])!=0))) {
@@ -35,10 +33,10 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  ll_init(link_layer, argv[1], BAUDRATE, 0, 1, 5, 1000, TRANSMITTER); 
+  ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 1000, TRANSMITTER); 
 
-  app_layer(link_layer, argv);
-   
+  app_layer(link_layer, "pinguim.gif");
+
   ll_end(link_layer);
 
   return 0;

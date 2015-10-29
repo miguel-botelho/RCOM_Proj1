@@ -17,80 +17,29 @@
 
 int main(int argc, char** argv) {
     
-    int fd;
-    struct termios oldtio,newtio;
-	  (void) signal(SIGALRM, atende);
-    LinkLayer *link_layer = malloc(sizeof(LinkLayer));
+	
+  	LinkLayer *link_layer = malloc(sizeof(LinkLayer));
 
-    if ( (argc < 2) || 
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
-  	      (strcmp("/dev/ttyS4", argv[1])!=0) )) {
-      printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
-      exit(1);
-    }
-
-
-    /*
-      Open serial port device for reading and writing and not as controlling tty
-      because we don't want to get killed if linenoise sends CTRL-C.
-    */
-  
-    
-    fd = open(argv[1], O_RDWR | O_NOCTTY );
-    if (fd <0) {perror(argv[1]); exit(-1); }
-
-    if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
-      perror("tcgetattr");
-      exit(-1);
-    }
-
-    bzero(&newtio, sizeof(newtio));
-    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-    newtio.c_iflag = IGNPAR;
-    newtio.c_oflag = 0;
-
-    /* set input mode (non-canonical, no echo,...) */
-    newtio.c_lflag = 0;
-
-    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
-
-
-
-    /* 
-      VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-      leitura do(s) próximo(s) caracter(es)
-    */
-
-    tcflush(fd, TCIOFLUSH);
-
-    if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
-    }
-
-    printf("New termios structure set\n");
-
-    
-    char *port = "kek";
-
-    link_layer->fd = fd;
-    link_layer->baudRate = BAUDRATE;
-    link_layer->port = port;
-    link_layer->sequenceNumber = 0;
-    link_layer->timeout = 1;
-    link_layer->maxTries = 5;
-    link_layer->status = RECEIVER;
-
-    app_layer(link_layer, argv);
-
-    /* 
-      O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
-    */
-
-
-
-    tcsetattr(fd,TCSANOW,&oldtio);
-    close(fd);
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sa.sa_handler = atende;
+  if (sigaction(SIGALRM, &sa, NULL) == -1) {
+    perror("Error: cannot handle SIGALRM");
     return 0;
+  }
+
+  if ( (argc < 2) || 
+	      (strcmp("/dev/ttyS0", argv[1])!=0 && 
+	      (strcmp("/dev/ttyS4", argv[1])!=0))) {
+    printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
+    exit(1);
+  }
+
+  ll_init(link_layer, argv[1], BAUDRATE, 1, 5, 1000, RECEIVER); 
+
+  app_layer(link_layer, 0);
+
+  ll_end(link_layer);
+
+	return 0;
 }
