@@ -14,10 +14,7 @@ void app_layer_receiver(LinkLayer *link_layer) {
 	fprintf(stderr, "Ligação Estabelecida\n");
 	FileInfo file;	
 	
-	
-
-	int bytesRead = al_readFile(link_layer, &file);
-	
+	al_readFile(link_layer, &file);
 	
 	//write(fd, file.file, bytesRead);
 
